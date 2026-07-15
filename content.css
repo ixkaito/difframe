@@ -1,0 +1,40 @@
+#fo-overlay-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none; /* デフォルトは下のページを操作可能 */
+}
+
+#fo-overlay-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  background: transparent;
+  transform-origin: top left;
+  pointer-events: none; /* ロック時。解除で auto に切り替える */
+}
+
+/* 位置調整用のドラッグハンドル（常に操作可能な細いバー） */
+#fo-drag-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 22px;
+  padding: 0 8px;
+  display: none; /* 移動モード時のみ表示 */
+  align-items: center;
+  gap: 8px;
+  font: 12px/22px -apple-system, system-ui, sans-serif;
+  color: #fff;
+  background: rgba(0, 122, 255, 0.9);
+  border-radius: 0 0 4px 0;
+  cursor: move;
+  pointer-events: auto;
+  user-select: none;
+  white-space: nowrap;
+}
+
+#fo-overlay-root.fo-move-mode #fo-drag-handle {
+  display: flex;
+}

@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Frame Overlay (PerfectPixel for iframes)",
+  "version": "0.1.0",
+  "description": "参考サイトや Figma プロトタイプを iframe で実装画面に重ねて表示するピクセルパーフェクト用ツール。",
+  "permissions": [
+    "declarativeNetRequest",
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Frame Overlay",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "frame-overlay@example.com",
+      "strict_min_version": "121.0"
+    }
+  }
+}

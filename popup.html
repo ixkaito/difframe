@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="row toggle-row">
+    <label class="switch">
+      <input type="checkbox" id="enabled" />
+      <span>オーバーレイを表示</span>
+    </label>
+  </div>
+
+  <div class="row">
+    <label>参照 URL（サイト / Figma 共有リンク）</label>
+    <div class="url-row">
+      <input type="text" id="url" placeholder="https://example.com または Figma proto URL" />
+      <button id="load">読込</button>
+    </div>
+    <p class="hint">Figma は共有リンクをそのまま貼ればプロトタイプを埋め込みます。</p>
+  </div>
+
+  <div class="row">
+    <label>不透明度 <span id="opacityVal"></span></label>
+    <input type="range" id="opacity" min="0" max="1" step="0.05" />
+  </div>
+
+  <div class="row">
+    <label>拡大率 <span id="scaleVal"></span></label>
+    <input type="range" id="scale" min="0.25" max="3" step="0.05" />
+  </div>
+
+  <div class="row grid2">
+    <div>
+      <label>幅 (px)</label>
+      <input type="number" id="width" />
+    </div>
+    <div>
+      <label>高さ (px)</label>
+      <input type="number" id="height" />
+    </div>
+  </div>
+
+  <div class="row grid2">
+    <div>
+      <label>X 位置</label>
+      <input type="number" id="x" />
+    </div>
+    <div>
+      <label>Y 位置</label>
+      <input type="number" id="y" />
+    </div>
+  </div>
+
+  <div class="row grid2">
+    <label class="switch">
+      <input type="checkbox" id="lock" />
+      <span>ロック（下を操作）</span>
+    </label>
+    <label class="switch">
+      <input type="checkbox" id="moveMode" />
+      <span>移動モード</span>
+    </label>
+  </div>
+
+  <div class="row">
+    <label>ブレンド</label>
+    <select id="blend">
+      <option value="normal">通常</option>
+      <option value="difference">差分 (difference)</option>
+    </select>
+  </div>
+
+  <p class="hint">ロック=ON で下の実装画面を操作。OFF で Figma プロトタイプを操作。差分ブレンドでピクセルずれを可視化。</p>
+
+  <script src="popup.js"></script>
+</body>
+</html>

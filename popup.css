@@ -1,0 +1,36 @@
+* { box-sizing: border-box; }
+body {
+  width: 320px;
+  margin: 0;
+  padding: 12px;
+  font: 13px/1.4 -apple-system, system-ui, sans-serif;
+  color: #1d1d1f;
+  background: #fff;
+}
+.row { margin-bottom: 12px; }
+label { display: block; margin-bottom: 4px; font-weight: 500; }
+input[type="text"], input[type="number"], select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d2d2d7;
+  border-radius: 6px;
+  font: inherit;
+}
+input[type="range"] { width: 100%; }
+.url-row { display: flex; gap: 6px; }
+.url-row input { flex: 1; }
+button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: #007aff;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+button:hover { background: #0066d6; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.switch { display: flex; align-items: center; gap: 6px; font-weight: 500; }
+.switch input { width: auto; margin: 0; }
+.toggle-row { font-size: 14px; }
+.hint { margin: 4px 0 0; font-size: 11px; color: #86868b; }
