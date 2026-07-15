@@ -32,5 +32,34 @@ button:hover { background: #0066d6; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .switch { display: flex; align-items: center; gap: 6px; font-weight: 500; }
 .switch input { width: auto; margin: 0; }
-.toggle-row { font-size: 14px; }
+.toggle-row { font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
 .hint { margin: 4px 0 0; font-size: 11px; color: #86868b; }
+
+.scope-key {
+  font-size: 10px;
+  color: #86868b;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: right;
+}
+.seg { display: flex; gap: 12px; }
+.seg label { display: flex; align-items: center; gap: 4px; font-weight: 400; margin: 0; }
+.seg input { width: auto; margin: 0; }
+
+.preset-row { display: flex; gap: 6px; align-items: center; }
+.preset-row select { flex: 1; }
+.preset-row button { padding: 6px 9px; }
+.preset-row .danger { background: #ff3b30; }
+.preset-row .danger:hover { background: #d70015; }
+button:disabled { opacity: 0.4; cursor: default; }
+
+fieldset {
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  padding: 10px 12px 2px;
+  margin: 0 0 12px;
+}
+fieldset:disabled { opacity: 0.5; }

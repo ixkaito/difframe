@@ -15,8 +15,7 @@ const stripRule = {
     ]
   },
   condition: {
-    resourceTypes: ["sub_frame"],
-    urlFilter: "*"
+    resourceTypes: ["sub_frame"]
   }
 };
 
