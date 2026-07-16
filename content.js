@@ -81,25 +81,6 @@
     return !!(b && b.enabled && activePreset());
   }
 
-  // このページで必ず 1 プリセット＋バインディングが存在する状態にする
-  // （enabled は false 始まりなので、これ自体では何も表示しない）。
-  function ensureProvisioned() {
-    let changed = false;
-    if (store.presets.length === 0) {
-      store.presets.push({ id: newId(), ...PRESET_DEFAULTS, name: "既定" });
-      changed = true;
-    }
-    const key = currentKey();
-    if (!store.bindings[key]) {
-      store.bindings[key] = { presetId: store.presets[0].id, enabled: false };
-      changed = true;
-    } else if (!store.presets.some((p) => p.id === store.bindings[key].presetId)) {
-      store.bindings[key].presetId = store.presets[0].id;
-      changed = true;
-    }
-    if (changed) save();
-  }
-
   function save() {
     return chrome.storage.local.set({ foStore: store });
   }
@@ -124,23 +105,35 @@
     return url;
   }
 
+  let frame, dragLayer;
+
   function ensureDom() {
     if (root) return;
     root = document.createElement("div");
     root.id = "fo-overlay-root";
 
+    // frame: transform・サイズ・不透明度・ブレンドを担うラッパー
+    frame = document.createElement("div");
+    frame.id = "fo-frame";
+
     iframe = document.createElement("iframe");
     iframe.id = "fo-overlay-iframe";
     iframe.allow = "fullscreen";
 
+    // dragLayer: 移動モード時に iframe 全面を覆ってドラッグを受ける
+    dragLayer = document.createElement("div");
+    dragLayer.id = "fo-drag-layer";
+
     handle = document.createElement("div");
     handle.id = "fo-drag-handle";
     coordLabel = document.createElement("span");
-    coordLabel.textContent = "移動: ドラッグ / 矢印キー";
+    coordLabel.textContent = "ドラッグで移動 / 矢印キーで微調整";
     handle.appendChild(coordLabel);
 
-    root.appendChild(iframe);
-    root.appendChild(handle);
+    frame.appendChild(iframe);
+    frame.appendChild(dragLayer);
+    frame.appendChild(handle);
+    root.appendChild(frame);
     document.documentElement.appendChild(root);
     enableDrag();
   }
@@ -148,7 +141,7 @@
   function enableDrag() {
     let dragging = false;
     let startX, startY, origX, origY;
-    handle.addEventListener("mousedown", (e) => {
+    const begin = (e) => {
       const p = activePreset();
       if (!p) return;
       dragging = true;
@@ -157,7 +150,11 @@
       origX = p.x;
       origY = p.y;
       e.preventDefault();
-    });
+    };
+    // 全面のドラッグレイヤーと、左上の座標バッジ、どちらからでも掴める
+    dragLayer.addEventListener("mousedown", begin);
+    handle.addEventListener("mousedown", begin);
+
     window.addEventListener("mousemove", (e) => {
       if (!dragging) return;
       const p = activePreset();
@@ -190,8 +187,8 @@
 
   function applyTransform() {
     const p = activePreset();
-    if (!iframe || !p) return;
-    iframe.style.transform = `translate(${p.x}px, ${p.y}px) scale(${p.scale})`;
+    if (!frame || !p) return;
+    frame.style.transform = `translate(${p.x}px, ${p.y}px) scale(${p.scale})`;
     if (coordLabel) coordLabel.textContent = `x:${p.x} y:${p.y} ×${p.scale}`;
   }
 
@@ -211,15 +208,19 @@
       iframe.dataset.src = src;
       iframe.src = src;
     }
-    iframe.style.width = p.width + "px";
-    iframe.style.height = p.height + "px";
-    iframe.style.opacity = String(p.opacity);
-    iframe.style.mixBlendMode = p.blend;
+    // サイズは frame に、ブレンド・不透明度も frame（グループ）に適用して確実に効かせる
+    frame.style.width = p.width + "px";
+    frame.style.height = p.height + "px";
+    frame.style.opacity = String(p.opacity);
+    frame.style.mixBlendMode = p.blend || "normal";
 
     const lock = store.settings.lock;
-    iframe.style.pointerEvents = lock ? "none" : "auto";
-    root.style.pointerEvents = lock ? "none" : "auto";
-    root.classList.toggle("fo-move-mode", !!store.settings.moveMode);
+    const move = !!store.settings.moveMode;
+    // 移動モード時は iframe を触らずドラッグ。通常はロックに従う。
+    iframe.style.pointerEvents = move ? "none" : lock ? "none" : "auto";
+    root.style.pointerEvents = move ? "auto" : lock ? "none" : "auto";
+    dragLayer.style.display = move ? "block" : "none";
+    root.classList.toggle("fo-move-mode", move);
     applyTransform();
 
     chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: true });
@@ -233,13 +234,16 @@
     }
     switch (msg?.type) {
       case "getData": {
-        ensureProvisioned();
         sendResponse({
           store,
           key: currentKey(),
           binding: activeBinding(),
           activePresetId: activePreset()?.id || null
         });
+        return;
+      }
+      case "getViewport": {
+        sendResponse({ width: window.innerWidth, height: window.innerHeight });
         return;
       }
       case "setEnabled": {

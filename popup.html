@@ -5,80 +5,98 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <div class="row toggle-row">
-    <label class="switch">
+ <div id="app">
+  <header class="hdr">
+    <div class="hdr-left">
+      <span class="dot"></span>
+      <span class="hdr-title">Frame Overlay</span>
+    </div>
+    <label class="toggle" title="オーバーレイを表示">
       <input type="checkbox" id="enabled" />
-      <span>オーバーレイを表示</span>
+      <span class="track"><span class="thumb"></span></span>
     </label>
-    <span id="scopeKey" class="scope-key"></span>
+  </header>
+
+  <div class="scope-key" id="scopeKey"></div>
+
+  <div class="seg" id="scopeSeg">
+    <button type="button" class="seg-btn" data-scope="host">ホスト別</button>
+    <button type="button" class="seg-btn" data-scope="path">ページ別</button>
+  </div>
+  <p class="hint">ホスト別＝ポート込み（:3000 と :4321 は別）／ページ別＝パス単位</p>
+
+  <div class="preset-bar">
+    <select id="presetSelect"></select>
+    <button type="button" id="presetAdd" class="icon-btn" title="新規追加">＋</button>
+    <button type="button" id="presetDup" class="icon-btn" title="複製">⧉</button>
+    <button type="button" id="presetDel" class="icon-btn danger" title="削除">🗑</button>
   </div>
 
-  <div class="row">
-    <label>適用範囲</label>
-    <div class="seg">
-      <label><input type="radio" name="scope" value="host" /> ホスト別</label>
-      <label><input type="radio" name="scope" value="path" /> ページ別</label>
-    </div>
-    <p class="hint">ホスト別＝ポート込み（localhost:3000 と :4321 は別扱い）。ページ別＝URLパス単位。</p>
+  <div id="emptyState" class="empty">
+    <p>このページにはプリセットが割り当てられていません。</p>
+    <p class="empty-sub">一覧から選ぶか、<b>＋</b> で追加してください。</p>
   </div>
 
-  <div class="row">
-    <label>プリセット</label>
-    <div class="preset-row">
-      <select id="presetSelect"></select>
-      <button id="presetAdd" title="新規追加">＋</button>
-      <button id="presetDup" title="複製">⧉</button>
-      <button id="presetDel" title="削除" class="danger">🗑</button>
-    </div>
-  </div>
-
-  <fieldset id="presetFields">
-    <div class="row">
-      <label>プリセット名</label>
+  <div id="fields" class="fields">
+    <div class="field">
+      <label for="name">プリセット名</label>
       <input type="text" id="name" />
     </div>
 
-    <div class="row">
-      <label>参照 URL（サイト / Figma 共有リンク）</label>
-      <input type="text" id="url" placeholder="https://example.com または Figma proto URL" />
-      <p class="hint">Figma は共有リンクをそのまま貼ればプロトタイプを埋め込みます。</p>
+    <div class="field">
+      <label for="url">参照 URL（サイト / Figma 共有リンク）</label>
+      <input type="text" id="url" placeholder="https://example.com / Figma proto URL" />
+      <p class="hint">Figma は共有リンクをそのまま貼れば埋め込みます。</p>
     </div>
 
-    <div class="row">
-      <label>不透明度 <span id="opacityVal"></span></label>
+    <div class="field">
+      <label>不透明度 <b id="opacityVal"></b></label>
       <input type="range" id="opacity" min="0" max="1" step="0.05" />
     </div>
 
-    <div class="row">
-      <label>拡大率 <span id="scaleVal"></span></label>
+    <div class="field">
+      <label>拡大率 <b id="scaleVal"></b></label>
       <input type="range" id="scale" min="0.25" max="3" step="0.05" />
     </div>
 
-    <div class="row grid2">
-      <div><label>幅 (px)</label><input type="number" id="width" /></div>
-      <div><label>高さ (px)</label><input type="number" id="height" /></div>
+    <div class="grid2">
+      <div class="field"><label for="width">幅 (px)</label><input type="number" id="width" /></div>
+      <div class="field"><label for="height">高さ (px)</label><input type="number" id="height" /></div>
     </div>
 
-    <div class="row grid2">
-      <div><label>X 位置</label><input type="number" id="x" /></div>
-      <div><label>Y 位置</label><input type="number" id="y" /></div>
+    <div class="grid2">
+      <div class="field"><label for="x">X 位置</label><input type="number" id="x" /></div>
+      <div class="field"><label for="y">Y 位置</label><input type="number" id="y" /></div>
     </div>
 
-    <div class="row">
-      <label>ブレンド</label>
+    <button type="button" id="fitViewport" class="btn-wide">画面に合わせる（幅・高さ＝ビューポート / X・Y＝0）</button>
+
+    <div class="field" style="margin-top:12px">
+      <label for="blend">ブレンド</label>
       <select id="blend">
         <option value="normal">通常</option>
         <option value="difference">差分 (difference)</option>
       </select>
+      <p class="hint">差分はピクセルずれの可視化用。<b>不透明度 1.0</b> が一番くっきりします。</p>
     </div>
-  </fieldset>
-
-  <div class="row grid2">
-    <label class="switch"><input type="checkbox" id="lock" /><span>ロック（下を操作）</span></label>
-    <label class="switch"><input type="checkbox" id="moveMode" /><span>移動モード</span></label>
   </div>
 
-  <p class="hint">ロック=ON で下の実装画面を操作。OFF で Figma プロトタイプを操作。差分ブレンドでピクセルずれを可視化。</p>
+  <div class="footer">
+    <label class="chk"><input type="checkbox" id="lock" /><span>ロック（下を操作）</span></label>
+    <label class="chk"><input type="checkbox" id="moveMode" /><span>移動モード</span></label>
+  </div>
+ </div><!-- /#app -->
+
+  <!-- カスタム確認モーダル（ネイティブ confirm はポップアップで切れるため） -->
+  <div id="confirmModal" class="modal-backdrop" hidden>
+    <div class="modal">
+      <p id="confirmMsg"></p>
+      <div class="modal-actions">
+        <button type="button" id="confirmCancel" class="btn btn-ghost">キャンセル</button>
+        <button type="button" id="confirmOk" class="btn btn-danger">削除</button>
+      </div>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

@@ -3,11 +3,13 @@ const $ = (id) => document.getElementById(id);
 const els = {
   enabled: $("enabled"),
   scopeKey: $("scopeKey"),
+  scopeSeg: $("scopeSeg"),
   presetSelect: $("presetSelect"),
   presetAdd: $("presetAdd"),
   presetDup: $("presetDup"),
   presetDel: $("presetDel"),
-  presetFields: $("presetFields"),
+  emptyState: $("emptyState"),
+  fields: $("fields"),
   name: $("name"),
   url: $("url"),
   opacity: $("opacity"),
@@ -20,7 +22,12 @@ const els = {
   y: $("y"),
   lock: $("lock"),
   moveMode: $("moveMode"),
-  blend: $("blend")
+  blend: $("blend"),
+  fitViewport: $("fitViewport"),
+  confirmModal: $("confirmModal"),
+  confirmMsg: $("confirmMsg"),
+  confirmOk: $("confirmOk"),
+  confirmCancel: $("confirmCancel")
 };
 
 let tabId = null;
@@ -53,43 +60,47 @@ async function refresh() {
 }
 
 function activePreset() {
-  if (!data) return null;
+  if (!data || !data.activePresetId) return null;
   return data.store.presets.find((p) => p.id === data.activePresetId) || null;
 }
 
 function fill() {
   if (!data) return;
-  const { store, key } = data;
-  els.enabled.checked = !!(data.binding && data.binding.enabled);
+  const { store, key, binding } = data;
+  const p = activePreset();
+
+  els.enabled.checked = !!(binding && binding.enabled && p);
   els.scopeKey.textContent = key;
 
-  for (const r of document.querySelectorAll('input[name="scope"]')) {
-    r.checked = r.value === store.settings.scope;
+  for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
+    b.classList.toggle("active", b.dataset.scope === store.settings.scope);
   }
   els.lock.checked = store.settings.lock;
   els.moveMode.checked = store.settings.moveMode;
 
-  // プリセット一覧
+  // プリセット一覧（未割当なら "— 未選択 —" を選択状態に）
   els.presetSelect.innerHTML = "";
-  if (store.presets.length === 0) {
+  if (!p) {
     const o = document.createElement("option");
-    o.textContent = "(プリセットなし — 表示ONで自動作成)";
     o.value = "";
+    o.textContent = store.presets.length ? "— 未選択 —" : "— プリセットなし —";
     els.presetSelect.appendChild(o);
   }
-  for (const p of store.presets) {
+  for (const pr of store.presets) {
     const o = document.createElement("option");
-    o.value = p.id;
-    o.textContent = p.name || "(無名)";
+    o.value = pr.id;
+    o.textContent = pr.name || "(無名)";
     els.presetSelect.appendChild(o);
   }
-  const p = activePreset();
-  if (p) els.presetSelect.value = p.id;
+  els.presetSelect.value = p ? p.id : "";
 
-  const disabled = !p;
-  els.presetFields.disabled = disabled;
-  els.presetDup.disabled = disabled;
-  els.presetDel.disabled = disabled;
+  els.presetDup.disabled = !p;
+  els.presetDel.disabled = !p;
+
+  // 空状態 / フォームの出し分け
+  els.fields.style.display = p ? "" : "none";
+  els.emptyState.style.display = p ? "none" : "";
+
   if (p) {
     els.name.value = p.name;
     els.url.value = p.url;
@@ -115,15 +126,30 @@ function setSettings(patch) {
   send({ type: "setSettings", patch }).then(refresh);
 }
 
+function confirmDialog(message) {
+  return new Promise((resolve) => {
+    els.confirmMsg.textContent = message;
+    els.confirmModal.hidden = false;
+    const done = (v) => {
+      els.confirmModal.hidden = true;
+      els.confirmOk.removeEventListener("click", ok);
+      els.confirmCancel.removeEventListener("click", cancel);
+      resolve(v);
+    };
+    const ok = () => done(true);
+    const cancel = () => done(false);
+    els.confirmOk.addEventListener("click", ok);
+    els.confirmCancel.addEventListener("click", cancel);
+  });
+}
+
 // ---- イベント ----
 els.enabled.addEventListener("change", () =>
   send({ type: "setEnabled", enabled: els.enabled.checked }).then(refresh)
 );
 
-for (const r of document.querySelectorAll('input[name="scope"]')) {
-  r.addEventListener("change", () => {
-    if (r.checked) setSettings({ scope: r.value });
-  });
+for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
+  b.addEventListener("click", () => setSettings({ scope: b.dataset.scope }));
 }
 
 els.presetSelect.addEventListener("change", () => {
@@ -136,9 +162,10 @@ els.presetDup.addEventListener("click", () => {
   const p = activePreset();
   if (p) send({ type: "duplicatePreset", presetId: p.id }).then(refresh);
 });
-els.presetDel.addEventListener("click", () => {
+els.presetDel.addEventListener("click", async () => {
   const p = activePreset();
-  if (p && confirm(`プリセット「${p.name}」を削除しますか？`))
+  if (!p) return;
+  if (await confirmDialog(`プリセット「${p.name}」を削除しますか？`))
     send({ type: "deletePreset", presetId: p.id }).then(refresh);
 });
 
@@ -160,6 +187,10 @@ els.height.addEventListener("change", () => patchPreset({ height: parseInt(els.h
 els.x.addEventListener("change", () => patchPreset({ x: parseInt(els.x.value, 10) || 0 }));
 els.y.addEventListener("change", () => patchPreset({ y: parseInt(els.y.value, 10) || 0 }));
 els.blend.addEventListener("change", () => patchPreset({ blend: els.blend.value }));
+els.fitViewport.addEventListener("click", async () => {
+  const vp = await send({ type: "getViewport" });
+  if (vp) patchPreset({ width: vp.width, height: vp.height, x: 0, y: 0 });
+});
 els.lock.addEventListener("change", () => setSettings({ lock: els.lock.checked }));
 els.moveMode.addEventListener("change", () => setSettings({ moveMode: els.moveMode.checked }));
 
