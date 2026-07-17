@@ -164,22 +164,40 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
 }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+.grid4 input { padding: 7px 6px; }
+.grid4 .field { margin-bottom: 0; }
+
+/* ラベル＋数値入力の横並び（スライダーはその下） */
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+.label-row label { margin-bottom: 0; }
+.label-row input[type="number"] {
+  flex: 0 0 auto;
+  width: 52px;
+  padding: 4px;
+  text-align: center;
+}
 .hint { margin: 5px 0 0; font-size: 11px; color: var(--muted); }
 
 .btn-wide {
   width: 100%;
-  margin-top: 12px;
   padding: 9px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--accent);
+  background: var(--accent);
+  color: #fff;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-wide:hover { background: var(--surface-2); }
+.btn-wide:hover { background: var(--accent-hover); }
+.btn-wide:active { transform: translateY(0.5px); }
 
 /* ---- 空状態 ---- */
 .empty {

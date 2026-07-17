@@ -13,9 +13,9 @@ const els = {
   name: $("name"),
   url: $("url"),
   opacity: $("opacity"),
-  opacityVal: $("opacityVal"),
+  opacityNum: $("opacityNum"),
   scale: $("scale"),
-  scaleVal: $("scaleVal"),
+  scaleNum: $("scaleNum"),
   width: $("width"),
   height: $("height"),
   x: $("x"),
@@ -113,9 +113,9 @@ function fill() {
     els.name.value = p.name;
     els.url.value = p.url;
     els.opacity.value = p.opacity;
-    els.opacityVal.textContent = p.opacity;
+    els.opacityNum.value = p.opacity;
     els.scale.value = p.scale;
-    els.scaleVal.textContent = "×" + p.scale;
+    els.scaleNum.value = p.scale;
     els.width.value = p.width;
     els.height.value = p.height;
     els.x.value = p.x;
@@ -182,13 +182,25 @@ els.url.addEventListener("change", () => patchPreset({ url: els.url.value.trim()
 els.url.addEventListener("keydown", (e) => {
   if (e.key === "Enter") patchPreset({ url: els.url.value.trim() });
 });
+// スライダー⇄数値入力を双方向に同期
+const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 els.opacity.addEventListener("input", () => {
-  els.opacityVal.textContent = els.opacity.value;
+  els.opacityNum.value = els.opacity.value;
   patchPreset({ opacity: parseFloat(els.opacity.value) });
 });
+els.opacityNum.addEventListener("change", () => {
+  const v = clamp(parseFloat(els.opacityNum.value) || 0, 0, 1);
+  els.opacity.value = v;
+  patchPreset({ opacity: v });
+});
 els.scale.addEventListener("input", () => {
-  els.scaleVal.textContent = "×" + els.scale.value;
+  els.scaleNum.value = els.scale.value;
   patchPreset({ scale: parseFloat(els.scale.value) });
+});
+els.scaleNum.addEventListener("change", () => {
+  const v = clamp(parseFloat(els.scaleNum.value) || 1, 0.25, 3);
+  els.scale.value = v;
+  patchPreset({ scale: v });
 });
 els.width.addEventListener("change", () => patchPreset({ width: parseInt(els.width.value, 10) || 0 }));
 els.height.addEventListener("change", () => patchPreset({ height: parseInt(els.height.value, 10) || 0 }));

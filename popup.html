@@ -46,27 +46,31 @@
       <p class="hint">Figma は共有リンクをそのまま貼れば埋め込みます。</p>
     </div>
 
-    <div class="field">
-      <label>不透明度 <b id="opacityVal"></b></label>
-      <input type="range" id="opacity" min="0" max="1" step="0.05" />
-    </div>
-
-    <div class="field">
-      <label>拡大率 <b id="scaleVal"></b></label>
-      <input type="range" id="scale" min="0.25" max="3" step="0.05" />
-    </div>
-
     <div class="grid2">
-      <div class="field"><label for="width">幅 (px)</label><input type="number" id="width" /></div>
-      <div class="field"><label for="height">高さ (px)</label><input type="number" id="height" /></div>
+      <div class="field">
+        <div class="label-row">
+          <label for="opacityNum">不透明度</label>
+          <input type="number" id="opacityNum" min="0" max="1" step="0.05" />
+        </div>
+        <input type="range" id="opacity" min="0" max="1" step="0.05" />
+      </div>
+      <div class="field">
+        <div class="label-row">
+          <label for="scaleNum">拡大率</label>
+          <input type="number" id="scaleNum" min="0.25" max="3" step="0.05" />
+        </div>
+        <input type="range" id="scale" min="0.25" max="3" step="0.05" />
+      </div>
     </div>
 
-    <div class="grid2">
-      <div class="field"><label for="x">X 位置</label><input type="number" id="x" /></div>
-      <div class="field"><label for="y">Y 位置</label><input type="number" id="y" /></div>
+    <div class="grid4">
+      <div class="field"><label for="width">幅</label><input type="number" id="width" /></div>
+      <div class="field"><label for="height">高さ</label><input type="number" id="height" /></div>
+      <div class="field"><label for="x">X</label><input type="number" id="x" /></div>
+      <div class="field"><label for="y">Y</label><input type="number" id="y" /></div>
     </div>
 
-    <button type="button" id="fitViewport" class="btn-wide">画面に合わせる（幅・高さ＝ビューポート / X・Y＝0）</button>
+    <button type="button" id="fitViewport" class="btn-wide">画面に合わせる</button>
 
     <div class="field" style="margin-top:12px">
       <label for="blend">ブレンド</label>
