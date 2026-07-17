@@ -43,23 +43,15 @@ body {
 }
 
 /* スクロールはこのラッパーに。gutter を確保してスクロールバーが
-   パディングに被らないようにする。 */
+   パディングに被らないようにする。
+   ※ポップアップの高さはブラウザ仕様で最大約 600px。 */
 #app {
   padding: 14px;
   max-height: 580px;
   overflow-y: auto;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
 }
-#app::-webkit-scrollbar { width: 10px; }
-#app::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 99px;
-  border: 3px solid var(--bg);
-  background-clip: padding-box;
-}
-#app::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 /* ---- ヘッダ ---- */
 .hdr {
@@ -68,12 +60,7 @@ body {
   justify-content: space-between;
   margin-bottom: 4px;
 }
-.hdr-left { display: flex; align-items: center; gap: 8px; }
-.hdr-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
-.dot {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #5e5ce6);
-}
+.hdr-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
 
 .scope-key {
   font-size: 11px;
@@ -86,7 +73,9 @@ body {
 }
 
 /* ---- トグルスイッチ ---- */
-.toggle { position: relative; display: inline-flex; cursor: pointer; }
+/* margin: 0 — グローバルの label { margin-bottom: 5px } を打ち消す
+   （残すと .hdr の中央揃えが 2.5px ずれる） */
+.toggle { position: relative; display: inline-flex; margin: 0; cursor: pointer; }
 .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
 .track {
   width: 42px; height: 25px;
