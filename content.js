@@ -203,10 +203,16 @@
     ensureDom();
     root.style.display = "block";
 
+    // ヘッダ剥がしルールの適用完了を待ってから iframe を読み込む
+    // （待たないと初回有効化時に XFO/CSP が残ったままリクエストされ得る）
     const src = buildFigmaEmbed(p.url || "");
     if (src && iframe.dataset.src !== src) {
       iframe.dataset.src = src;
-      iframe.src = src;
+      chrome.runtime
+        .sendMessage({ type: "setHeaderStripping", enabled: true })
+        .then(() => {
+          iframe.src = src;
+        });
     }
     // サイズは frame に、ブレンド・不透明度も frame（グループ）に適用して確実に効かせる
     frame.style.width = p.width + "px";
