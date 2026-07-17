@@ -20,8 +20,8 @@ const els = {
   height: $("height"),
   x: $("x"),
   y: $("y"),
-  lock: $("lock"),
-  moveMode: $("moveMode"),
+  targetSeg: $("targetSeg"),
+  targetHint: $("targetHint"),
   blend: $("blend"),
   fitViewport: $("fitViewport"),
   confirmModal: $("confirmModal"),
@@ -75,8 +75,16 @@ function fill() {
   for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
     b.classList.toggle("active", b.dataset.scope === store.settings.scope);
   }
-  els.lock.checked = store.settings.lock;
-  els.moveMode.checked = store.settings.moveMode;
+  // 操作対象: moveMode > lock の優先順で実質3モード
+  const target = store.settings.moveMode ? "move" : store.settings.lock ? "page" : "overlay";
+  for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {
+    b.classList.toggle("active", b.dataset.target === target);
+  }
+  els.targetHint.textContent = {
+    page: "オーバーレイは素通し。下の実装ページを普段どおり操作できます。",
+    overlay: "オーバーレイ（iframe 内）を操作できます。実装ページには届きません。",
+    move: "ドラッグ・矢印キー（Shift で ×10）でオーバーレイの位置を調整。"
+  }[target];
 
   // プリセット一覧（未割当なら "— 未選択 —" を選択状態に）
   els.presetSelect.innerHTML = "";
@@ -191,8 +199,16 @@ els.fitViewport.addEventListener("click", async () => {
   const vp = await send({ type: "getViewport" });
   if (vp) patchPreset({ width: vp.width, height: vp.height, x: 0, y: 0 });
 });
-els.lock.addEventListener("change", () => setSettings({ lock: els.lock.checked }));
-els.moveMode.addEventListener("change", () => setSettings({ moveMode: els.moveMode.checked }));
+for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {
+  b.addEventListener("click", () => {
+    const patch = {
+      page: { lock: true, moveMode: false },
+      overlay: { lock: false, moveMode: false },
+      move: { moveMode: true }
+    }[b.dataset.target];
+    setSettings(patch);
+  });
+}
 
 (async () => {
   const tab = await activeTab();

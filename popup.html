@@ -79,8 +79,15 @@
   </div>
 
   <div class="footer">
-    <label class="chk"><input type="checkbox" id="lock" /><span>ロック（下を操作）</span></label>
-    <label class="chk"><input type="checkbox" id="moveMode" /><span>移動モード</span></label>
+    <div class="field">
+      <label>操作対象（クリック・スクロールが届く先）</label>
+      <div class="seg" id="targetSeg">
+        <button type="button" class="seg-btn" data-target="page">実装ページ</button>
+        <button type="button" class="seg-btn" data-target="overlay">オーバーレイ</button>
+        <button type="button" class="seg-btn" data-target="move">移動</button>
+      </div>
+      <p class="hint" id="targetHint"></p>
+    </div>
   </div>
  </div><!-- /#app -->
 

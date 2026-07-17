@@ -202,8 +202,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
-.chk { display: flex; align-items: center; gap: 7px; font-weight: 500; margin: 0; cursor: pointer; }
-.chk input { width: auto; margin: 0; accent-color: var(--accent); }
 
 /* ---- モーダル ---- */
 .modal-backdrop {

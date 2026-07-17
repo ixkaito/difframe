@@ -10,6 +10,41 @@
   if (window.__frameOverlayInjected) return;
   window.__frameOverlayInjected = true;
 
+  const FRAME_NAME = "fo-overlay-frame";
+
+  // ---- オーバーレイ iframe の中で動く分岐（all_frames で注入される）----
+  if (window !== window.top) {
+    if (window.name !== FRAME_NAME) return; // 無関係な iframe では何もしない
+
+    // スクロールが端に達しても親（実装ページ）へ連鎖させない
+    const style = document.createElement("style");
+    style.textContent = "html, body { overscroll-behavior: none !important; }";
+    (document.head || document.documentElement).appendChild(style);
+
+    // 親から操作対象モードを受け取り、実装ページ操作中は wheel を止めて
+    // オーバーレイがスクロールしないようにする
+    // （Firefox はスクロールのヒットテストで pointer-events: none を
+    //   無視することがあり、親側の対策だけでは漏れるため）。
+    // overflow: hidden の付け外しだとスクロールバーの出入りで
+    // レイアウト幅が変わってしまうので、イベントで止める。
+    let mode = "page";
+    window.addEventListener("message", (e) => {
+      if (e.source !== window.parent) return;
+      const m = e.data && e.data.__frameOverlayMode;
+      if (m === "overlay" || m === "page") mode = m;
+    });
+    window.addEventListener(
+      "wheel",
+      (e) => {
+        if (mode === "page") e.preventDefault();
+      },
+      { passive: false, capture: true }
+    );
+    // 準備完了を親に伝えて、現在のモードを送ってもらう
+    window.parent.postMessage({ __frameOverlayReady: true }, "*");
+    return;
+  }
+
   const PRESET_DEFAULTS = {
     name: "プリセット",
     url: "",
@@ -118,6 +153,7 @@
 
     iframe = document.createElement("iframe");
     iframe.id = "fo-overlay-iframe";
+    iframe.name = FRAME_NAME; // iframe 内の content script が自分を識別する印
     iframe.allow = "fullscreen";
 
     // dragLayer: 移動モード時に iframe 全面を覆ってドラッグを受ける
@@ -136,6 +172,18 @@
     root.appendChild(frame);
     document.documentElement.appendChild(root);
     enableDrag();
+
+    // オーバーレイ操作中、iframe の外（root）に当たった wheel を止める。
+    // root は fixed inset:0 だがスクロールコンテナではないため、
+    // 放っておくと実装ページへスクロールが流れてしまう。
+    root.addEventListener(
+      "wheel",
+      (e) => {
+        const { lock, moveMode } = store.settings;
+        if (isEnabled() && !lock && !moveMode) e.preventDefault();
+      },
+      { passive: false }
+    );
   }
 
   function enableDrag() {
@@ -185,6 +233,21 @@
     });
   }
 
+  // iframe 内の content script に現在の操作対象モードを伝える
+  function sendModeToFrame() {
+    if (!iframe || !iframe.contentWindow) return;
+    const { lock, moveMode } = store.settings;
+    const mode = isEnabled() && !lock && !moveMode ? "overlay" : "page";
+    iframe.contentWindow.postMessage({ __frameOverlayMode: mode }, "*");
+  }
+
+  // iframe 側の準備完了通知を受けてモードを送る（初回ロード時の取りこぼし防止）
+  window.addEventListener("message", (e) => {
+    if (iframe && e.source === iframe.contentWindow && e.data && e.data.__frameOverlayReady) {
+      sendModeToFrame();
+    }
+  });
+
   function applyTransform() {
     const p = activePreset();
     if (!frame || !p) return;
@@ -196,6 +259,7 @@
     if (!store) return;
     if (!isEnabled()) {
       if (root) root.style.display = "none";
+      sendModeToFrame();
       chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: false });
       return;
     }
@@ -227,6 +291,7 @@
     root.style.pointerEvents = move ? "auto" : lock ? "none" : "auto";
     dragLayer.style.display = move ? "block" : "none";
     root.classList.toggle("fo-move-mode", move);
+    sendModeToFrame();
     applyTransform();
 
     chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: true });
