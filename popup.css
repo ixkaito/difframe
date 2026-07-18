@@ -1,30 +1,40 @@
+/* デザイントークン: Radix Colors (Slate / Blue / Red) を使い、
+   Radix Themes のコンポーネント様式に合わせている。
+   コメントの「slate3」等は Radix Colors のスケール段数。 */
 :root {
   --bg: #ffffff;
-  --surface: #f5f5f7;
-  --surface-2: #ececf0;
-  --border: #e2e2e8;
-  --text: #1d1d1f;
-  --muted: #86868b;
-  --accent: #007aff;
-  --accent-hover: #0066d6;
-  --danger: #ff3b30;
-  --danger-hover: #d70015;
-  --radius: 10px;
-  --radius-sm: 7px;
+  --surface: #f0f0f3;      /* slate3: セグメントトラック・ソフト背景 */
+  --surface-2: #e8e8ec;    /* slate4: hover */
+  --surface-3: #e0e1e6;    /* slate5: スイッチ未選択トラック */
+  --border: #d9d9e0;       /* slate6: 区切り線 */
+  --border-input: #cdced6; /* slate7: 入力欄・ボタンの枠 */
+  --text: #1c2024;         /* slate12 */
+  --muted: #60646c;        /* slate11 */
+  --accent: #3e63dd;       /* indigo9 */
+  --accent-hover: #3358d4; /* indigo10 */
+  --focus: #8da4ef;        /* indigo8: フォーカスリング */
+  --danger: #e5484d;       /* red9 */
+  --danger-hover: #dc3e42; /* red10 */
+  --radius: 4px;           /* radius-2 */
+  --radius-sm: 4px;        /* radius-2 */
+  --control-h: 32px;       /* size2 コントロール高さ (space-6) */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1c1c1e;
-    --surface: #2c2c2e;
-    --surface-2: #3a3a3c;
-    --border: #3a3a3c;
-    --text: #f5f5f7;
-    --muted: #98989d;
-    --accent: #0a84ff;
-    --accent-hover: #409cff;
-    --danger: #ff453a;
-    --danger-hover: #ff6961;
+    --bg: #111113;           /* slate1 */
+    --surface: #212225;      /* slate3 */
+    --surface-2: #272a2d;    /* slate4 */
+    --surface-3: #2e3135;    /* slate5 */
+    --border: #363a3f;       /* slate6 */
+    --border-input: #43484e; /* slate7 */
+    --text: #edeef0;         /* slate12 */
+    --muted: #b0b4ba;        /* slate11 */
+    --accent: #3e63dd;       /* indigo9 */
+    --accent-hover: #5472e4; /* indigo10 */
+    --focus: #435db1;        /* indigo8 */
+    --danger: #e5484d;       /* red9 */
+    --danger-hover: #ec5d5e; /* red10 */
   }
 }
 
@@ -36,7 +46,8 @@ body {
   width: 340px;
   margin: 0;
   padding: 0;
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Radix Themes size2: font-size-2 14px / line-height-2 20px */
+  font: 14px/1.43 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -46,7 +57,7 @@ body {
    パディングに被らないようにする。
    ※ポップアップの高さはブラウザ仕様で最大約 600px。 */
 #app {
-  padding: 14px;
+  padding: 16px; /* space-4 */
   max-height: 580px;
   overflow-y: auto;
   scrollbar-gutter: stable;
@@ -62,53 +73,62 @@ body {
 }
 .hdr-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
 
-/* ラベルと同じ見た目（13px・本文色・weight 500）に揃える */
+/* ラベルと同じ見た目（font-size-1・本文色・weight 500）に揃える */
 .scope-key {
+  font-size: 12px; /* font-size-1 */
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  margin-bottom: 12px;
+  margin-bottom: 4px; /* ラベル→コントロール間と同じ space-1 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ---- トグルスイッチ ---- */
+/* ---- トグルスイッチ (Radix Switch 風) ---- */
 /* margin: 0 — グローバルの label { margin-bottom: 5px } を打ち消す
    （残すと .hdr の中央揃えが 2.5px ずれる） */
 .toggle { position: relative; display: inline-flex; margin: 0; cursor: pointer; }
 .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+/* Radix Switch size2: トラック 35×20 / サム 16 */
 .track {
-  width: 42px; height: 25px;
-  background: var(--surface-2);
+  width: 35px; height: 20px;
+  background: var(--surface-3);
   border-radius: 99px;
   transition: background 0.18s ease;
   display: flex; align-items: center;
   padding: 2px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 .thumb {
-  width: 21px; height: 21px;
+  width: 16px; height: 16px;
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
   transition: transform 0.18s ease;
 }
 .toggle input:checked + .track { background: var(--accent); }
-.toggle input:checked + .track .thumb { transform: translateX(17px); }
+.toggle input:checked + .track .thumb { transform: translateX(15px); }
+.toggle input:focus-visible + .track { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-/* ---- セグメント ---- */
+/* ---- セグメント (Radix SegmentedControl 風) ---- */
 .seg {
   display: flex;
+  /* 内側のボタン（ボーダーなし）が、ボーダー付きコントロールの
+     内側の白い面（--control-h − 2px）と同じ高さに見えるように */
+  height: calc(var(--control-h) + 4px);
   background: var(--surface);
-  border-radius: var(--radius-sm);
+  /* 同心角丸: 外側 = 内側の角丸 + パディング */
+  border-radius: calc(var(--radius-sm) + 3px);
   padding: 3px;
   gap: 3px;
   margin-bottom: 6px;
 }
+/* 高さはトラックから stretch で決まる */
 .seg-btn {
   flex: 1;
-  padding: 6px 4px;
+  padding: 0 4px;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -119,47 +139,55 @@ body {
 .seg-btn.active {
   background: var(--bg);
   color: var(--text);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
+.seg-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -1px; }
 
 /* ---- プリセットバー ---- */
 .preset-bar { display: flex; gap: 6px; align-items: center; margin: 14px 0 12px; }
 .preset-bar[hidden] { display: none; }
 .preset-bar select,
 .preset-bar input[type="text"] { flex: 1; min-width: 0; }
+
+/* Radix IconButton (surface variant) 風 */
 .icon-btn {
   flex: 0 0 auto;
-  width: 32px; height: 32px;
+  width: var(--control-h); height: var(--control-h);
   display: inline-flex; align-items: center; justify-content: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-input);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--bg);
   color: var(--text);
   font-size: 14px;
   cursor: pointer;
   transition: background 0.15s;
 }
-.icon-btn:hover { background: var(--surface-2); }
+.icon-btn:hover { background: var(--surface); }
 .icon-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 .icon-btn:disabled { opacity: 0.35; cursor: default; }
-.icon-btn:disabled:hover { background: var(--surface); color: var(--text); }
+.icon-btn:disabled:hover { background: var(--bg); color: var(--text); }
+.icon-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -1px; }
 
 /* URL 入力＋適用ボタン */
 .url-row { display: flex; gap: 6px; }
 .url-row input { flex: 1; min-width: 0; }
+
+/* Radix Button (solid variant) 風 */
 .btn-apply {
   flex: 0 0 auto;
-  padding: 7px 12px;
+  height: var(--control-h);
+  padding: 0 12px; /* space-3 */
   border: 0;
   border-radius: var(--radius-sm);
   background: var(--accent);
   color: #fff;
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.15s;
 }
 .btn-apply:hover { background: var(--accent-hover); }
+.btn-apply:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* プリセット選択のタブローカル化 */
 .tab-pin {
@@ -176,30 +204,76 @@ body {
 .tab-pin input { margin: 0; accent-color: var(--accent); }
 .tab-pin:has(input:checked) { color: var(--text); }
 
-/* ---- フォーム ---- */
+/* ---- フォーム (Radix TextField / Select 風: 白背景 + slate7 枠) ---- */
 .field { margin-bottom: 12px; }
 .field:last-child { margin-bottom: 0; }
-label { display: block; margin-bottom: 5px; font-weight: 500; }
+label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 500; } /* font-size-1 / space-1 */
 label b { color: var(--accent); font-weight: 600; }
 input[type="text"], input[type="number"], select {
   width: 100%;
-  padding: 7px 9px;
-  border: 1px solid var(--border);
+  height: var(--control-h);
+  padding: 0 8px; /* space-2 */
+  border: 1px solid var(--border-input);
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--bg);
   color: var(--text);
   font: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s;
 }
+/* 数値入力はスピナーと詰まって見えないよう 6px に */
+input[type="number"] { padding: 0 6px; }
+input[type="text"]::placeholder { color: var(--muted); opacity: 0.6; }
 input[type="text"]:focus, input[type="number"]:focus, select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
 }
-input[type="range"] { width: 100%; accent-color: var(--accent); }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* Radix Slider 風: ピル型トラック (6px) + 白サム (16px) */
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 16px;
+  margin: 4px 0;
+  background: transparent;
+  cursor: pointer;
+}
+/* Firefox */
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 99px;
+}
+input[type="range"]::-moz-range-progress {
+  height: 6px;
+  background: var(--accent);
+  border-radius: 99px;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px;
+  background: #fff;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+/* WebKit (Chrome/Safari) */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 99px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  margin-top: -5px; /* (サム16 - トラック6) / 2 */
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+input[type="range"]:focus-visible { outline: none; }
+input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--focus); outline-offset: 2px; }
+input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--focus); outline-offset: 2px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } /* space-2 */
 .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
-.grid4 input { padding: 7px 6px; }
 .grid4 .field { margin-bottom: 0; }
 
 /* ラベル＋数値入力の横並び（スライダーはその下） */
@@ -207,39 +281,43 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 5px;
+  margin-bottom: 4px; /* space-1 */
 }
 .label-row label { margin-bottom: 0; }
 .label-row input[type="number"] {
   flex: 0 0 auto;
-  width: 52px;
-  padding: 4px;
-  text-align: center;
+  width: 64px;
+  text-align: left;
 }
-.hint { margin: 5px 0 0; font-size: 11px; color: var(--muted); }
+.hint { margin: 4px 0 0; font-size: 12px; color: var(--muted); } /* font-size-1 */
 
+/* Radix Button (solid variant) 風 */
 .btn-wide {
   width: 100%;
-  padding: 9px;
+  height: var(--control-h);
+  padding: 0 12px;
   border: 0;
   border-radius: var(--radius-sm);
   background: var(--accent);
   color: #fff;
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.15s;
 }
 .btn-wide:hover { background: var(--accent-hover); }
 .btn-wide:active { transform: translateY(0.5px); }
+.btn-wide:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* ---- 空状態 ---- */
 .empty {
   padding: 22px 14px;
+  margin-bottom: 12px; /* space-3: 下のフィールドと同じ間隔 */
   text-align: center;
+  font-size: 12px; /* font-size-1 */
   color: var(--muted);
   background: var(--surface);
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--border-input);
   border-radius: var(--radius);
 }
 .empty p { margin: 0; }
@@ -254,11 +332,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 .target-block .field { margin-bottom: 0; }
 
-/* ---- モーダル ---- */
+/* ---- モーダル (Radix Dialog 風) ---- */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -273,19 +351,22 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  box-shadow: 0 12px 60px -12px rgba(0, 0, 0, 0.35), 0 12px 32px -16px rgba(0, 0, 0, 0.2);
 }
 .modal p { margin: 0 0 14px; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .btn {
-  padding: 7px 14px;
+  height: var(--control-h);
+  padding: 0 12px; /* space-3 */
   border: 0;
   border-radius: var(--radius-sm);
   font: inherit;
   font-weight: 500;
   cursor: pointer;
 }
-.btn-ghost { background: var(--surface-2); color: var(--text); }
-.btn-ghost:hover { background: var(--border); }
+.btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Radix Button (soft variant) 風 */
+.btn-ghost { background: var(--surface); color: var(--text); }
+.btn-ghost:hover { background: var(--surface-2); }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-danger:hover { background: var(--danger-hover); }
