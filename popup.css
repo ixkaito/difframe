@@ -62,9 +62,9 @@ body {
 }
 .hdr-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
 
+/* ラベルと同じ見た目（13px・本文色・weight 500）に揃える */
 .scope-key {
-  font-size: 11px;
-  color: var(--muted);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   margin-bottom: 12px;
   overflow: hidden;
@@ -166,14 +166,15 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: -6px 0 12px;
+  width: fit-content; /* テキストの右の余白がクリック判定にならないように */
+  margin: 10px 0 0;
   font-size: 12px;
   font-weight: 400;
   color: var(--muted);
   cursor: pointer;
 }
 .tab-pin input { margin: 0; accent-color: var(--accent); }
-.tab-pin:has(input:checked) { color: var(--accent); }
+.tab-pin:has(input:checked) { color: var(--text); }
 
 /* ---- フォーム ---- */
 .field { margin-bottom: 12px; }
@@ -244,15 +245,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .empty p { margin: 0; }
 .empty-sub { margin-top: 6px; font-size: 12px; }
 
-/* ---- フッタ ---- */
-.footer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
+/* ---- 操作対象（ヘッダー直下の常用コントロール）---- */
+.target-block {
+  margin: 10px 0 12px;
+  padding: 12px 0;
   border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
+.target-block .field { margin-bottom: 0; }
 
 /* ---- モーダル ---- */
 .modal-backdrop {

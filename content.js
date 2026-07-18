@@ -4,7 +4,7 @@
 //     version: 2,
 //     presets: [{ id, name, url, opacity, scale, x, y, width, height, blend }],
 //     bindings: { "<key>": { presetId, enabled } },  // key = host or host+path
-//     settings: { scope: "host" | "path", lock: bool, moveMode: bool }
+//     settings: { scope: "host" | "path", lock: bool }
 //   }
 (() => {
   if (window.__frameOverlayInjected) return;
@@ -56,10 +56,10 @@
     height: 900,
     blend: "normal"
   };
-  const SETTINGS_DEFAULTS = { scope: "path", lock: true, moveMode: false };
+  const SETTINGS_DEFAULTS = { scope: "path", lock: true };
 
   let store = null;
-  let root, iframe, handle, coordLabel;
+  let root, iframe;
 
   // ---- タブローカルの上書き ----
   // sessionStorage はタブごとに独立し、リロードしても残り、タブを閉じると
@@ -173,7 +173,7 @@
     return url;
   }
 
-  let frame, dragLayer;
+  let frame;
 
   function ensureDom() {
     if (root) return;
@@ -189,22 +189,9 @@
     iframe.name = FRAME_NAME; // iframe 内の content script が自分を識別する印
     iframe.allow = "fullscreen";
 
-    // dragLayer: 移動モード時に iframe 全面を覆ってドラッグを受ける
-    dragLayer = document.createElement("div");
-    dragLayer.id = "fo-drag-layer";
-
-    handle = document.createElement("div");
-    handle.id = "fo-drag-handle";
-    coordLabel = document.createElement("span");
-    coordLabel.textContent = "ドラッグで移動 / 矢印キーで微調整";
-    handle.appendChild(coordLabel);
-
     frame.appendChild(iframe);
-    frame.appendChild(dragLayer);
-    frame.appendChild(handle);
     root.appendChild(frame);
     document.documentElement.appendChild(root);
-    enableDrag();
 
     // オーバーレイ操作中、iframe の外（root）に当たった wheel を止める。
     // root は fixed inset:0 だがスクロールコンテナではないため、
@@ -212,65 +199,16 @@
     root.addEventListener(
       "wheel",
       (e) => {
-        const { lock, moveMode } = store.settings;
-        if (isEnabled() && !lock && !moveMode) e.preventDefault();
+        if (isEnabled() && !store.settings.lock) e.preventDefault();
       },
       { passive: false }
     );
   }
 
-  function enableDrag() {
-    let dragging = false;
-    let startX, startY, origX, origY;
-    const begin = (e) => {
-      const p = activePreset();
-      if (!p) return;
-      dragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      origX = p.x;
-      origY = p.y;
-      e.preventDefault();
-    };
-    // 全面のドラッグレイヤーと、左上の座標バッジ、どちらからでも掴める
-    dragLayer.addEventListener("mousedown", begin);
-    handle.addEventListener("mousedown", begin);
-
-    window.addEventListener("mousemove", (e) => {
-      if (!dragging) return;
-      const p = activePreset();
-      if (!p) return;
-      p.x = origX + (e.clientX - startX);
-      p.y = origY + (e.clientY - startY);
-      applyTransform();
-    });
-    window.addEventListener("mouseup", () => {
-      if (dragging) {
-        dragging = false;
-        save();
-      }
-    });
-    window.addEventListener("keydown", (e) => {
-      if (!isEnabled() || !store.settings.moveMode) return;
-      const p = activePreset();
-      if (!p) return;
-      const step = e.shiftKey ? 10 : 1;
-      if (e.key === "ArrowLeft") p.x -= step;
-      else if (e.key === "ArrowRight") p.x += step;
-      else if (e.key === "ArrowUp") p.y -= step;
-      else if (e.key === "ArrowDown") p.y += step;
-      else return;
-      e.preventDefault();
-      applyTransform();
-      save();
-    });
-  }
-
   // iframe 内の content script に現在の操作対象モードを伝える
   function sendModeToFrame() {
     if (!iframe || !iframe.contentWindow) return;
-    const { lock, moveMode } = store.settings;
-    const mode = isEnabled() && !lock && !moveMode ? "overlay" : "page";
+    const mode = isEnabled() && !store.settings.lock ? "overlay" : "page";
     iframe.contentWindow.postMessage({ __frameOverlayMode: mode }, "*");
   }
 
@@ -285,7 +223,6 @@
     const p = activePreset();
     if (!frame || !p) return;
     frame.style.transform = `translate(${p.x}px, ${p.y}px) scale(${p.scale})`;
-    if (coordLabel) coordLabel.textContent = `x:${p.x} y:${p.y} ×${p.scale}`;
   }
 
   function render() {
@@ -322,12 +259,8 @@
     frame.style.mixBlendMode = p.blend || "normal";
 
     const lock = store.settings.lock;
-    const move = !!store.settings.moveMode;
-    // 移動モード時は iframe を触らずドラッグ。通常はロックに従う。
-    iframe.style.pointerEvents = move ? "none" : lock ? "none" : "auto";
-    root.style.pointerEvents = move ? "auto" : lock ? "none" : "auto";
-    dragLayer.style.display = move ? "block" : "none";
-    root.classList.toggle("fo-move-mode", move);
+    iframe.style.pointerEvents = lock ? "none" : "auto";
+    root.style.pointerEvents = lock ? "none" : "auto";
     sendModeToFrame();
     applyTransform();
 

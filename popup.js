@@ -4,7 +4,6 @@ const els = {
   enabled: $("enabled"),
   scopeKey: $("scopeKey"),
   scopeSeg: $("scopeSeg"),
-  scopeHint: $("scopeHint"),
   presetBar: $("presetBar"),
   presetSelect: $("presetSelect"),
   presetRename: $("presetRename"),
@@ -29,7 +28,6 @@ const els = {
   x: $("x"),
   y: $("y"),
   targetSeg: $("targetSeg"),
-  targetHint: $("targetHint"),
   blend: $("blend"),
   fitViewport: $("fitViewport"),
   confirmModal: $("confirmModal"),
@@ -83,20 +81,10 @@ function fill() {
   for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
     b.classList.toggle("active", b.dataset.scope === store.settings.scope);
   }
-  els.scopeHint.textContent = {
-    path: "パス単位",
-    host: "ポート込み (:3000 と :4321 は別扱い)"
-  }[store.settings.scope];
-  // 操作対象: moveMode > lock の優先順で実質3モード
-  const target = store.settings.moveMode ? "move" : store.settings.lock ? "page" : "overlay";
+  const target = store.settings.lock ? "page" : "overlay";
   for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {
     b.classList.toggle("active", b.dataset.target === target);
   }
-  els.targetHint.textContent = {
-    page: "オーバーレイは素通し。下の実装ページを普段どおり操作できます。",
-    overlay: "オーバーレイ（iframe 内）を操作できます。実装ページには届きません。",
-    move: "ドラッグ・矢印キー（Shift で ×10）でオーバーレイの位置を調整。"
-  }[target];
 
   // プリセット一覧（未割当なら "— 未選択 —" を選択状態に）
   els.presetSelect.innerHTML = "";
@@ -256,14 +244,7 @@ els.fitViewport.addEventListener("click", async () => {
   if (vp) patchPreset({ width: vp.width, height: vp.height, x: 0, y: 0 });
 });
 for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {
-  b.addEventListener("click", () => {
-    const patch = {
-      page: { lock: true, moveMode: false },
-      overlay: { lock: false, moveMode: false },
-      move: { moveMode: true }
-    }[b.dataset.target];
-    setSettings(patch);
-  });
+  b.addEventListener("click", () => setSettings({ lock: b.dataset.target === "page" }));
 }
 
 (async () => {

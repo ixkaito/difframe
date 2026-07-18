@@ -23,39 +23,3 @@
   pointer-events: none; /* ロック時。解除で auto に切り替える */
 }
 
-/* 移動モード時に iframe 全面を覆ってドラッグを受けるレイヤー */
-#fo-drag-layer {
-  position: absolute;
-  inset: 0;
-  display: none;
-  cursor: move;
-  pointer-events: auto;
-  background: rgba(0, 122, 255, 0.06);
-  outline: 1px dashed rgba(0, 122, 255, 0.6);
-  outline-offset: -1px;
-}
-
-/* 左上の座標バッジ（移動モード時のみ表示） */
-#fo-drag-handle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 22px;
-  padding: 0 8px;
-  display: none;
-  align-items: center;
-  gap: 8px;
-  font: 12px/22px -apple-system, system-ui, sans-serif;
-  color: #fff;
-  background: rgba(0, 122, 255, 0.95);
-  border-radius: 0 0 4px 0;
-  cursor: move;
-  pointer-events: auto;
-  user-select: none;
-  white-space: nowrap;
-  z-index: 1;
-}
-
-#fo-overlay-root.fo-move-mode #fo-drag-handle {
-  display: flex;
-}

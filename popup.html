@@ -14,13 +14,27 @@
     </label>
   </header>
 
+  <div class="target-block">
+    <div class="field">
+      <label>スクロール・クリックの操作対象</label>
+      <div class="seg" id="targetSeg">
+        <button type="button" class="seg-btn" data-target="page">ページ</button>
+        <button type="button" class="seg-btn" data-target="overlay">オーバーレイ</button>
+      </div>
+    </div>
+  </div>
+
   <div class="scope-key" id="scopeKey"></div>
 
   <div class="seg" id="scopeSeg">
     <button type="button" class="seg-btn" data-scope="path">ページ別</button>
     <button type="button" class="seg-btn" data-scope="host">ホスト別</button>
   </div>
-  <p class="hint" id="scopeHint"></p>
+
+  <label class="tab-pin" title="ON の間、プリセットの選択とオン/オフはこのタブだけに適用され、他のタブに影響しません">
+    <input type="checkbox" id="tabPin" />
+    <span>このタブのみに適用</span>
+  </label>
 
   <div class="preset-bar" id="presetBar">
     <select id="presetSelect"></select>
@@ -35,27 +49,30 @@
     <button type="button" id="renameCancel" class="icon-btn" title="キャンセル (Esc)">✕</button>
   </div>
 
-  <label class="tab-pin" title="ON の間、プリセットの選択とオン/オフはこのタブだけに適用され、他のタブに影響しません">
-    <input type="checkbox" id="tabPin" />
-    <span>このタブのみに適用</span>
-  </label>
-
   <div id="emptyState" class="empty">
-    <p>このページにはプリセットが割り当てられていません。</p>
+    <p>プリセットが割り当てられていません。</p>
     <p class="empty-sub">一覧から選ぶか、<b>＋</b> で追加してください。</p>
   </div>
 
   <div id="fields" class="fields">
     <div class="field">
-      <label for="url">参照 URL（サイト / Figma 共有リンク）</label>
+      <label for="url">参照 URL</label>
       <div class="url-row">
         <input type="text" id="url" placeholder="https://example.com / Figma proto URL" />
         <button type="button" id="urlApply" class="btn-apply">適用</button>
       </div>
-      <p class="hint">Enter か「適用」で読み込み。Figma は共有リンクをそのまま貼れます。</p>
     </div>
 
-    <div class="grid2">
+    <div class="grid4">
+      <div class="field"><label for="width">幅</label><input type="number" id="width" /></div>
+      <div class="field"><label for="height">高さ</label><input type="number" id="height" /></div>
+      <div class="field"><label for="x">X</label><input type="number" id="x" /></div>
+      <div class="field"><label for="y">Y</label><input type="number" id="y" /></div>
+    </div>
+
+    <button type="button" id="fitViewport" class="btn-wide">画面に合わせる</button>
+
+    <div class="grid2" style="margin-top:12px">
       <div class="field">
         <div class="label-row">
           <label for="opacityNum">不透明度</label>
@@ -72,17 +89,8 @@
       </div>
     </div>
 
-    <div class="grid4">
-      <div class="field"><label for="width">幅</label><input type="number" id="width" /></div>
-      <div class="field"><label for="height">高さ</label><input type="number" id="height" /></div>
-      <div class="field"><label for="x">X</label><input type="number" id="x" /></div>
-      <div class="field"><label for="y">Y</label><input type="number" id="y" /></div>
-    </div>
-
-    <button type="button" id="fitViewport" class="btn-wide">画面に合わせる</button>
-
-    <div class="field" style="margin-top:12px">
-      <label for="blend">ブレンド</label>
+    <div class="field">
+      <label for="blend">ブレンドモード</label>
       <select id="blend">
         <option value="normal">通常</option>
         <option value="difference">差分 (difference)</option>
@@ -91,17 +99,6 @@
     </div>
   </div>
 
-  <div class="footer">
-    <div class="field">
-      <label>操作対象（クリック・スクロールが届く先）</label>
-      <div class="seg" id="targetSeg">
-        <button type="button" class="seg-btn" data-target="page">実装ページ</button>
-        <button type="button" class="seg-btn" data-target="overlay">オーバーレイ</button>
-        <button type="button" class="seg-btn" data-target="move">移動</button>
-      </div>
-      <p class="hint" id="targetHint"></p>
-    </div>
-  </div>
  </div><!-- /#app -->
 
   <!-- カスタム確認モーダル（ネイティブ confirm はポップアップで切れるため） -->
