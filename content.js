@@ -310,6 +310,10 @@
         .then(() => {
           iframe.src = src;
         });
+    } else if (!src && iframe.dataset.src) {
+      // URL が空のプリセットに切り替わったら、前のページを残さず空にする
+      iframe.dataset.src = "";
+      iframe.src = "about:blank";
     }
     // サイズは frame に、ブレンド・不透明度も frame（グループ）に適用して確実に効かせる
     frame.style.width = p.width + "px";
