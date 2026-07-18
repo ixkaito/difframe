@@ -61,6 +61,27 @@
   let store = null;
   let root, iframe, handle, coordLabel;
 
+  // ---- タブローカルの上書き ----
+  // sessionStorage はタブごとに独立し、リロードしても残り、タブを閉じると
+  // 消えるので「このタブだけ別プリセット」の置き場所にちょうどいい。
+  const TAB_OVERRIDE_KEY = "__frameOverlayTabOverride";
+  let tabOverride = null; // { presetId, enabled } | null
+
+  function loadTabOverride() {
+    try {
+      tabOverride = JSON.parse(sessionStorage.getItem(TAB_OVERRIDE_KEY)) || null;
+    } catch {
+      tabOverride = null;
+    }
+  }
+
+  function saveTabOverride() {
+    try {
+      if (tabOverride) sessionStorage.setItem(TAB_OVERRIDE_KEY, JSON.stringify(tabOverride));
+      else sessionStorage.removeItem(TAB_OVERRIDE_KEY);
+    } catch {}
+  }
+
   // ---- ストア読み込み・マイグレーション ----
   function newId() {
     return "p_" + Math.random().toString(36).slice(2, 9);
@@ -102,7 +123,8 @@
   }
 
   function activeBinding() {
-    return store.bindings[currentKey()] || null;
+    // タブローカルの上書きがあれば共有バインディングより優先
+    return tabOverride || store.bindings[currentKey()] || null;
   }
 
   function activePreset() {
@@ -309,7 +331,8 @@
           store,
           key: currentKey(),
           binding: activeBinding(),
-          activePresetId: activePreset()?.id || null
+          activePresetId: activePreset()?.id || null,
+          tabOverride
         });
         return;
       }
@@ -318,6 +341,17 @@
         return;
       }
       case "setEnabled": {
+        if (tabOverride) {
+          // タブローカル上書き中はタブ側だけを切り替える
+          if (msg.enabled && !tabOverride.presetId) {
+            tabOverride.presetId = store.presets[0]?.id || null;
+          }
+          tabOverride.enabled = msg.enabled;
+          saveTabOverride();
+          render();
+          sendResponse({ ok: true });
+          return;
+        }
         const key = currentKey();
         let b = store.bindings[key];
         if (msg.enabled) {
@@ -345,10 +379,36 @@
         return;
       }
       case "selectPreset": {
+        if (tabOverride) {
+          tabOverride.presetId = msg.presetId;
+          saveTabOverride();
+          render();
+          sendResponse({ ok: true });
+          return;
+        }
         const key = currentKey();
         const b = store.bindings[key] || (store.bindings[key] = { presetId: null, enabled: true });
         b.presetId = msg.presetId;
         save().then(render);
+        sendResponse({ ok: true });
+        return;
+      }
+      case "setTabOverride": {
+        // 現在の割り当てを引き継いでタブローカル上書きを開始
+        const base = store.bindings[currentKey()];
+        tabOverride = {
+          presetId: base?.presetId || store.presets[0]?.id || null,
+          enabled: base ? !!base.enabled : false
+        };
+        saveTabOverride();
+        render();
+        sendResponse({ ok: true });
+        return;
+      }
+      case "clearTabOverride": {
+        tabOverride = null;
+        saveTabOverride();
+        render();
         sendResponse({ ok: true });
         return;
       }
@@ -384,6 +444,10 @@
         for (const k of Object.keys(store.bindings)) {
           if (store.bindings[k].presetId === msg.presetId) delete store.bindings[k];
         }
+        if (tabOverride && tabOverride.presetId === msg.presetId) {
+          tabOverride.presetId = null;
+          saveTabOverride();
+        }
         save().then(render);
         sendResponse({ ok: true });
         return;
@@ -404,5 +468,6 @@
     }
   });
 
+  loadTabOverride();
   load();
 })();

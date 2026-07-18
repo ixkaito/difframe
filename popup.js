@@ -8,6 +8,7 @@ const els = {
   presetAdd: $("presetAdd"),
   presetDup: $("presetDup"),
   presetDel: $("presetDel"),
+  tabPin: $("tabPin"),
   emptyState: $("emptyState"),
   fields: $("fields"),
   name: $("name"),
@@ -104,6 +105,7 @@ function fill() {
 
   els.presetDup.disabled = !p;
   els.presetDel.disabled = !p;
+  els.tabPin.checked = !!data.tabOverride;
 
   // 空状態 / フォームの出し分け
   els.fields.style.display = p ? "" : "none";
@@ -159,6 +161,10 @@ els.enabled.addEventListener("change", () =>
 for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
   b.addEventListener("click", () => setSettings({ scope: b.dataset.scope }));
 }
+
+els.tabPin.addEventListener("change", () =>
+  send({ type: els.tabPin.checked ? "setTabOverride" : "clearTabOverride" }).then(refresh)
+);
 
 els.presetSelect.addEventListener("change", () => {
   if (els.presetSelect.value) send({ type: "selectPreset", presetId: els.presetSelect.value }).then(refresh);
