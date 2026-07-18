@@ -162,6 +162,7 @@ body {
   cursor: pointer;
   transition: background 0.15s;
 }
+.icon-btn svg { display: block; }
 .icon-btn:hover { background: var(--surface); }
 .icon-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 .icon-btn:disabled { opacity: 0.35; cursor: default; }
