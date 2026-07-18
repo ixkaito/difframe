@@ -56,7 +56,7 @@
     height: 900,
     blend: "normal"
   };
-  const SETTINGS_DEFAULTS = { scope: "host", lock: true, moveMode: false };
+  const SETTINGS_DEFAULTS = { scope: "path", lock: true, moveMode: false };
 
   let store = null;
   let root, iframe, handle, coordLabel;
@@ -136,6 +136,17 @@
   function isEnabled() {
     const b = activeBinding();
     return !!(b && b.enabled && activePreset());
+  }
+
+  // プリセットを現在の割り当て先（ピン中はタブ上書き、通常は共有）に紐付ける
+  function assignPreset(presetId) {
+    if (tabOverride) {
+      tabOverride.presetId = presetId;
+      tabOverride.enabled = true;
+      saveTabOverride();
+    } else {
+      store.bindings[currentKey()] = { presetId, enabled: true };
+    }
   }
 
   function save() {
@@ -343,12 +354,16 @@
       case "setEnabled": {
         if (tabOverride) {
           // タブローカル上書き中はタブ側だけを切り替える
+          // （プリセットが無ければ、ピンなし時と同様に自動作成する）
           if (msg.enabled && !tabOverride.presetId) {
-            tabOverride.presetId = store.presets[0]?.id || null;
+            if (store.presets.length === 0) {
+              store.presets.push({ id: newId(), ...PRESET_DEFAULTS });
+            }
+            tabOverride.presetId = store.presets[0].id;
           }
           tabOverride.enabled = msg.enabled;
           saveTabOverride();
-          render();
+          save().then(render);
           sendResponse({ ok: true });
           return;
         }
@@ -419,11 +434,11 @@
         sendResponse({ ok: true });
         return;
       }
+      // 新規プリセットの割り当て先：ピン中はタブ上書き、通常は共有バインディング
       case "addPreset": {
         const p = { id: newId(), ...PRESET_DEFAULTS, ...(msg.preset || {}) };
         store.presets.push(p);
-        const key = currentKey();
-        store.bindings[key] = { presetId: p.id, enabled: true };
+        assignPreset(p.id);
         save().then(render);
         sendResponse({ ok: true, id: p.id });
         return;
@@ -433,7 +448,7 @@
         if (src) {
           const p = { ...src, id: newId(), name: src.name + " のコピー" };
           store.presets.push(p);
-          store.bindings[currentKey()] = { presetId: p.id, enabled: true };
+          assignPreset(p.id);
           save().then(render);
           sendResponse({ ok: true, id: p.id });
         } else sendResponse({ ok: false });

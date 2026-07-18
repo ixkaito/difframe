@@ -4,6 +4,7 @@ const els = {
   enabled: $("enabled"),
   scopeKey: $("scopeKey"),
   scopeSeg: $("scopeSeg"),
+  scopeHint: $("scopeHint"),
   presetSelect: $("presetSelect"),
   presetAdd: $("presetAdd"),
   presetDup: $("presetDup"),
@@ -76,6 +77,10 @@ function fill() {
   for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
     b.classList.toggle("active", b.dataset.scope === store.settings.scope);
   }
+  els.scopeHint.textContent = {
+    path: "パス単位",
+    host: "ポート込み (:3000 と :4321 は別扱い)"
+  }[store.settings.scope];
   // 操作対象: moveMode > lock の優先順で実質3モード
   const target = store.settings.moveMode ? "move" : store.settings.lock ? "page" : "overlay";
   for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {

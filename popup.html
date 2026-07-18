@@ -17,10 +17,10 @@
   <div class="scope-key" id="scopeKey"></div>
 
   <div class="seg" id="scopeSeg">
-    <button type="button" class="seg-btn" data-scope="host">ホスト別</button>
     <button type="button" class="seg-btn" data-scope="path">ページ別</button>
+    <button type="button" class="seg-btn" data-scope="host">ホスト別</button>
   </div>
-  <p class="hint">ホスト別＝ポート込み（:3000 と :4321 は別）／ページ別＝パス単位</p>
+  <p class="hint" id="scopeHint"></p>
 
   <div class="preset-bar">
     <select id="presetSelect"></select>
@@ -31,7 +31,7 @@
 
   <label class="tab-pin" title="ON の間、プリセットの選択とオン/オフはこのタブだけに適用され、他のタブに影響しません">
     <input type="checkbox" id="tabPin" />
-    <span>このタブだけ別プリセットにする</span>
+    <span>このタブのみに適用</span>
   </label>
 
   <div id="emptyState" class="empty">
