@@ -142,6 +142,23 @@ body {
 .icon-btn:disabled { opacity: 0.35; cursor: default; }
 .icon-btn:disabled:hover { background: var(--surface); color: var(--text); }
 
+/* URL 入力＋適用ボタン */
+.url-row { display: flex; gap: 6px; }
+.url-row input { flex: 1; min-width: 0; }
+.btn-apply {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-apply:hover { background: var(--accent-hover); }
+
 /* プリセット選択のタブローカル化 */
 .tab-pin {
   display: flex;

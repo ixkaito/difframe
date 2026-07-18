@@ -14,6 +14,7 @@ const els = {
   fields: $("fields"),
   name: $("name"),
   url: $("url"),
+  urlApply: $("urlApply"),
   opacity: $("opacity"),
   opacityNum: $("opacityNum"),
   scale: $("scale"),
@@ -189,9 +190,12 @@ els.presetDel.addEventListener("click", async () => {
 });
 
 els.name.addEventListener("change", () => patchPreset({ name: els.name.value }));
-els.url.addEventListener("change", () => patchPreset({ url: els.url.value.trim() }));
+// URL は blur では確定しない（入力途中の意図しない読み込み・保存を防ぐ）。
+// Enter か「適用」ボタンでのみ確定する。
+const applyUrl = () => patchPreset({ url: els.url.value.trim() });
+els.urlApply.addEventListener("click", applyUrl);
 els.url.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") patchPreset({ url: els.url.value.trim() });
+  if (e.key === "Enter") applyUrl();
 });
 // スライダー⇄数値入力を双方向に同期
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));

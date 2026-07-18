@@ -47,8 +47,11 @@
 
     <div class="field">
       <label for="url">参照 URL（サイト / Figma 共有リンク）</label>
-      <input type="text" id="url" placeholder="https://example.com / Figma proto URL" />
-      <p class="hint">Figma は共有リンクをそのまま貼れば埋め込みます。</p>
+      <div class="url-row">
+        <input type="text" id="url" placeholder="https://example.com / Figma proto URL" />
+        <button type="button" id="urlApply" class="btn-apply">適用</button>
+      </div>
+      <p class="hint">Enter か「適用」で読み込み。Figma は共有リンクをそのまま貼れます。</p>
     </div>
 
     <div class="grid2">
