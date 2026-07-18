@@ -124,7 +124,9 @@ body {
 
 /* ---- プリセットバー ---- */
 .preset-bar { display: flex; gap: 6px; align-items: center; margin: 14px 0 12px; }
-.preset-bar select { flex: 1; min-width: 0; }
+.preset-bar[hidden] { display: none; }
+.preset-bar select,
+.preset-bar input[type="text"] { flex: 1; min-width: 0; }
 .icon-btn {
   flex: 0 0 auto;
   width: 32px; height: 32px;

@@ -22,11 +22,17 @@
   </div>
   <p class="hint" id="scopeHint"></p>
 
-  <div class="preset-bar">
+  <div class="preset-bar" id="presetBar">
     <select id="presetSelect"></select>
+    <button type="button" id="presetRename" class="icon-btn" title="名前を変更">✏️</button>
     <button type="button" id="presetAdd" class="icon-btn" title="新規追加">＋</button>
     <button type="button" id="presetDup" class="icon-btn" title="複製">⧉</button>
     <button type="button" id="presetDel" class="icon-btn danger" title="削除">🗑</button>
+  </div>
+  <div class="preset-bar" id="renameBar" hidden>
+    <input type="text" id="renameInput" />
+    <button type="button" id="renameOk" class="icon-btn" title="確定 (Enter)">✓</button>
+    <button type="button" id="renameCancel" class="icon-btn" title="キャンセル (Esc)">✕</button>
   </div>
 
   <label class="tab-pin" title="ON の間、プリセットの選択とオン/オフはこのタブだけに適用され、他のタブに影響しません">
@@ -40,11 +46,6 @@
   </div>
 
   <div id="fields" class="fields">
-    <div class="field">
-      <label for="name">プリセット名</label>
-      <input type="text" id="name" />
-    </div>
-
     <div class="field">
       <label for="url">参照 URL（サイト / Figma 共有リンク）</label>
       <div class="url-row">

@@ -5,14 +5,19 @@ const els = {
   scopeKey: $("scopeKey"),
   scopeSeg: $("scopeSeg"),
   scopeHint: $("scopeHint"),
+  presetBar: $("presetBar"),
   presetSelect: $("presetSelect"),
+  presetRename: $("presetRename"),
   presetAdd: $("presetAdd"),
   presetDup: $("presetDup"),
   presetDel: $("presetDel"),
+  renameBar: $("renameBar"),
+  renameInput: $("renameInput"),
+  renameOk: $("renameOk"),
+  renameCancel: $("renameCancel"),
   tabPin: $("tabPin"),
   emptyState: $("emptyState"),
   fields: $("fields"),
-  name: $("name"),
   url: $("url"),
   urlApply: $("urlApply"),
   opacity: $("opacity"),
@@ -109,6 +114,7 @@ function fill() {
   }
   els.presetSelect.value = p ? p.id : "";
 
+  els.presetRename.disabled = !p;
   els.presetDup.disabled = !p;
   els.presetDel.disabled = !p;
   els.tabPin.checked = !!data.tabOverride;
@@ -118,7 +124,6 @@ function fill() {
   els.emptyState.style.display = p ? "none" : "";
 
   if (p) {
-    els.name.value = p.name;
     els.url.value = p.url;
     els.opacity.value = p.opacity;
     els.opacityNum.value = p.opacity;
@@ -189,7 +194,31 @@ els.presetDel.addEventListener("click", async () => {
     send({ type: "deletePreset", presetId: p.id }).then(refresh);
 });
 
-els.name.addEventListener("change", () => patchPreset({ name: els.name.value }));
+// ---- インライン改名（✏️ でセレクトが入力欄に切り替わる）----
+function startRename() {
+  const p = activePreset();
+  if (!p) return;
+  els.presetBar.hidden = true;
+  els.renameBar.hidden = false;
+  els.renameInput.value = p.name;
+  els.renameInput.focus();
+  els.renameInput.select();
+}
+function endRename(commit) {
+  if (commit) {
+    const name = els.renameInput.value.trim();
+    if (name) patchPreset({ name });
+  }
+  els.renameBar.hidden = true;
+  els.presetBar.hidden = false;
+}
+els.presetRename.addEventListener("click", startRename);
+els.renameOk.addEventListener("click", () => endRename(true));
+els.renameCancel.addEventListener("click", () => endRename(false));
+els.renameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") endRename(true);
+  else if (e.key === "Escape") endRename(false);
+});
 // URL は blur では確定しない（入力途中の意図しない読み込み・保存を防ぐ）。
 // Enter か「適用」ボタンでのみ確定する。
 const applyUrl = () => patchPreset({ url: els.url.value.trim() });
