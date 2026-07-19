@@ -117,6 +117,8 @@ function fill() {
     els.opacityNum.value = p.opacity;
     els.scale.value = p.scale;
     els.scaleNum.value = p.scale;
+    paintSlider(els.opacity);
+    paintSlider(els.scale);
     els.width.value = p.width;
     els.height.value = p.height;
     els.x.value = p.x;
@@ -216,22 +218,34 @@ els.url.addEventListener("keydown", (e) => {
 });
 // スライダー⇄数値入力を双方向に同期
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+// Chrome 用: トラックの進捗塗り位置を CSS 変数で更新
+// （Firefox は ::-moz-range-progress がネイティブに塗る）
+function paintSlider(el) {
+  const min = parseFloat(el.min);
+  const max = parseFloat(el.max);
+  const pct = ((parseFloat(el.value) - min) / (max - min)) * 100;
+  el.style.setProperty("--fill", pct + "%");
+}
 els.opacity.addEventListener("input", () => {
   els.opacityNum.value = els.opacity.value;
+  paintSlider(els.opacity);
   patchPreset({ opacity: parseFloat(els.opacity.value) });
 });
 els.opacityNum.addEventListener("change", () => {
   const v = clamp(parseFloat(els.opacityNum.value) || 0, 0, 1);
   els.opacity.value = v;
+  paintSlider(els.opacity);
   patchPreset({ opacity: v });
 });
 els.scale.addEventListener("input", () => {
   els.scaleNum.value = els.scale.value;
+  paintSlider(els.scale);
   patchPreset({ scale: parseFloat(els.scale.value) });
 });
 els.scaleNum.addEventListener("change", () => {
   const v = clamp(parseFloat(els.scaleNum.value) || 1, 0.25, 3);
   els.scale.value = v;
+  paintSlider(els.scale);
   patchPreset({ scale: v });
 });
 els.width.addEventListener("change", () => patchPreset({ width: parseInt(els.width.value, 10) || 0 }));
