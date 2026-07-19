@@ -25,10 +25,8 @@ const els = {
   imageDrop: $("imageDrop"),
   imageDropHint: $("imageDropHint"),
   imageThumb: $("imageThumb"),
-  imageActions: $("imageActions"),
   imageInfo: $("imageInfo"),
   imageClear: $("imageClear"),
-  imageFile: $("imageFile"),
   opacity: $("opacity"),
   opacityNum: $("opacityNum"),
   scale: $("scale"),
@@ -48,6 +46,10 @@ const els = {
 
 let tabId = null;
 let data = null; // { store, key, binding, activePresetId }
+
+// OS に合わせた貼り付けキー表記（Mac: ⌘V / それ以外: Ctrl+V）
+els.imageDropHint.textContent =
+  (navigator.platform.includes("Mac") ? "⌘V" : "Ctrl+V") + " で貼り付け / クリックで画像を選択";
 
 async function activeTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -244,14 +246,16 @@ async function loadThumb(presetId) {
   if (im) {
     els.imageThumb.src = im.data;
     els.imageThumb.hidden = false;
+    els.imageClear.hidden = false;
     els.imageDropHint.hidden = true;
-    els.imageActions.hidden = false;
+    els.imageInfo.hidden = false;
     els.imageInfo.textContent = `${im.width}×${im.height}px`;
   } else {
     els.imageThumb.removeAttribute("src");
     els.imageThumb.hidden = true;
+    els.imageClear.hidden = true;
     els.imageDropHint.hidden = false;
-    els.imageActions.hidden = true;
+    els.imageInfo.hidden = true;
   }
 }
 
@@ -283,11 +287,13 @@ async function setImageFromBlob(blob) {
 for (const b of els.srcSeg.querySelectorAll(".seg-btn")) {
   b.addEventListener("click", () => patchPreset({ srcType: b.dataset.src }));
 }
-els.imageDrop.addEventListener("click", () => els.imageFile.click());
-els.imageFile.addEventListener("change", () => {
-  const f = els.imageFile.files[0];
-  if (f) setImageFromBlob(f);
-  els.imageFile.value = "";
+// ファイル選択・D&D はポップアップ内では完結できない（フォーカスが
+// 外れると閉じる）ため、ページ上のドロップゾーンに委ねる
+els.imageDrop.addEventListener("click", () => {
+  const p = activePreset();
+  if (!p) return;
+  send({ type: "pickImage", presetId: p.id });
+  window.close();
 });
 document.addEventListener("paste", (e) => {
   if (els.imageRow.hidden || !activePreset()) return;
@@ -297,7 +303,8 @@ document.addEventListener("paste", (e) => {
     setImageFromBlob(item.getAsFile());
   }
 });
-els.imageClear.addEventListener("click", async () => {
+els.imageClear.addEventListener("click", async (e) => {
+  e.stopPropagation(); // ドロップエリアのクリック（ページ上ピッカー起動）を抑止
   const p = activePreset();
   if (!p) return;
   const r = await chrome.storage.local.get("foImages");

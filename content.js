@@ -238,6 +238,87 @@
     document.documentElement.appendChild(root);
   }
 
+  // ---- ページ上の画像ピッカー ----
+  // ポップアップはフォーカスを失うと閉じるため、ファイル選択も D&D も
+  // ポップアップ内では完結できない。代わりにページ上へ全画面の
+  // ドロップゾーンを出して、そこで受け取る。
+  let picker = null;
+
+  function saveImageBlob(presetId, blob) {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const data = fr.result;
+      const img = new Image();
+      img.onload = () => {
+        imagesCache[presetId] = { data, width: img.naturalWidth, height: img.naturalHeight };
+        chrome.storage.local.set({ foImages: imagesCache });
+        const p = store.presets.find((x) => x.id === presetId);
+        if (p) {
+          p.srcType = "image";
+          // Retina スクショを想定して CSS px に換算した初期サイズ
+          p.width = Math.round(img.naturalWidth / devicePixelRatio);
+          p.height = Math.round(img.naturalHeight / devicePixelRatio);
+        }
+        save().then(render);
+      };
+      img.src = data;
+    };
+    fr.readAsDataURL(blob);
+  }
+
+  function closePicker() {
+    if (picker) {
+      picker.remove();
+      picker = null;
+    }
+  }
+
+  function openPicker(presetId) {
+    closePicker();
+    picker = document.createElement("div");
+    picker.id = "fo-pick";
+    picker.innerHTML =
+      '<div id="fo-pick-box">画像をここにドロップ<br>' +
+      '<span class="fo-pick-sub">または</span><br>' +
+      "クリックで画像を選択<br>" +
+      '<span class="fo-pick-sub">(Esc でキャンセル)</span></div>';
+
+    picker.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      picker.classList.add("fo-pick-over");
+    });
+    picker.addEventListener("dragleave", () => picker.classList.remove("fo-pick-over"));
+    picker.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const f = [...(e.dataTransfer?.files || [])].find((x) => x.type.startsWith("image/"));
+      if (f) saveImageBlob(presetId, f);
+      closePicker();
+    });
+    picker.addEventListener("click", () => {
+      // ページ上のクリック＝ユーザー操作なのでファイルダイアログを開ける
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.addEventListener("change", () => {
+        if (input.files[0]) saveImageBlob(presetId, input.files[0]);
+        closePicker();
+      });
+      input.click();
+    });
+    window.addEventListener(
+      "keydown",
+      function esc(e) {
+        if (e.key === "Escape") {
+          closePicker();
+          window.removeEventListener("keydown", esc, true);
+        }
+      },
+      true
+    );
+
+    document.documentElement.appendChild(picker);
+  }
+
   // iframe 内の content script に現在の操作対象モードを伝える
   function sendModeToFrame() {
     if (!iframe || !iframe.contentWindow) return;
@@ -461,6 +542,11 @@
           chrome.storage.local.set({ foImages: imagesCache });
         }
         save().then(render);
+        sendResponse({ ok: true });
+        return;
+      }
+      case "pickImage": {
+        openPicker(msg.presetId);
         sendResponse({ ok: true });
         return;
       }

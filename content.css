@@ -32,6 +32,35 @@
   pointer-events: none; /* ロック時。解除で auto に切り替える */
 }
 
+/* ページ上の画像ピッカー（ドロップゾーン） */
+#fo-pick {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px; /* ウィンドウ端との隙間 */
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+#fo-pick-box {
+  width: 100%;
+  max-width: 480px;
+  padding: 28px 24px;
+  border: 2px dashed rgba(255, 255, 255, 0.8);
+  border-radius: 4px; /* ボタン等と同じ radius-2 */
+  color: #fff;
+  font: 15px/1.8 -apple-system, system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+#fo-pick-box .fo-pick-sub { font-size: 12px; opacity: 0.8; }
+#fo-pick.fo-pick-over #fo-pick-box {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* スクショ貼付モードの画像（iframe と排他表示） */
 #fo-overlay-img {
   position: absolute;
