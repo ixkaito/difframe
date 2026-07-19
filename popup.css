@@ -169,9 +169,47 @@ body {
 .icon-btn:disabled:hover { background: var(--bg); color: var(--text); }
 .icon-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -1px; }
 
+/* hidden 属性が display: flex 等の指定に負けないように */
+[hidden] { display: none !important; }
+
 /* URL 入力＋適用ボタン */
 .url-row { display: flex; gap: 6px; }
 .url-row input { flex: 1; min-width: 0; }
+
+/* 参照タイプ切り替え（ラベル行に収まる小型セグメント） */
+.seg-mini {
+  height: 26px;
+  padding: 2px;
+  gap: 2px;
+  margin-bottom: 0;
+  border-radius: calc(var(--radius-sm) + 2px);
+}
+.seg-mini .seg-btn { flex: 0 0 auto; padding: 0 10px; font-size: 12px; }
+
+/* スクショ貼り付けエリア */
+.image-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px dashed var(--border-input);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.image-drop:hover { background: var(--surface-2); }
+.image-drop img { max-width: 100%; max-height: 90px; display: block; border-radius: 2px; }
+.image-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.image-actions .hint { margin: 0; }
 
 /* Radix Button (solid variant) 風 */
 .btn-apply {

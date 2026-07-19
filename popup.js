@@ -19,6 +19,16 @@ const els = {
   fields: $("fields"),
   url: $("url"),
   urlApply: $("urlApply"),
+  srcSeg: $("srcSeg"),
+  urlRow: $("urlRow"),
+  imageRow: $("imageRow"),
+  imageDrop: $("imageDrop"),
+  imageDropHint: $("imageDropHint"),
+  imageThumb: $("imageThumb"),
+  imageActions: $("imageActions"),
+  imageInfo: $("imageInfo"),
+  imageClear: $("imageClear"),
+  imageFile: $("imageFile"),
   opacity: $("opacity"),
   opacityNum: $("opacityNum"),
   scale: $("scale"),
@@ -111,6 +121,15 @@ function fill() {
   // 空状態 / フォームの出し分け
   els.fields.style.display = p ? "" : "none";
   els.emptyState.style.display = p ? "none" : "";
+
+  // 参照タイプ（URL / 画像）の出し分け
+  const srcType = p ? p.srcType || "url" : "url";
+  for (const b of els.srcSeg.querySelectorAll(".seg-btn")) {
+    b.classList.toggle("active", b.dataset.src === srcType);
+  }
+  els.urlRow.hidden = srcType !== "url";
+  els.imageRow.hidden = srcType !== "image";
+  if (p && srcType === "image") loadThumb(p.id);
 
   if (p) {
     els.url.value = p.url;
@@ -216,6 +235,76 @@ const applyUrl = () => patchPreset({ url: els.url.value.trim() });
 els.urlApply.addEventListener("click", applyUrl);
 els.url.addEventListener("keydown", (e) => {
   if (e.key === "Enter") applyUrl();
+});
+
+// ---- スクショ貼付（参照タイプ: 画像）----
+async function loadThumb(presetId) {
+  const r = await chrome.storage.local.get("foImages");
+  const im = r.foImages && r.foImages[presetId];
+  if (im) {
+    els.imageThumb.src = im.data;
+    els.imageThumb.hidden = false;
+    els.imageDropHint.hidden = true;
+    els.imageActions.hidden = false;
+    els.imageInfo.textContent = `${im.width}×${im.height}px`;
+  } else {
+    els.imageThumb.removeAttribute("src");
+    els.imageThumb.hidden = true;
+    els.imageDropHint.hidden = false;
+    els.imageActions.hidden = true;
+  }
+}
+
+async function setImageFromBlob(blob) {
+  const p = activePreset();
+  if (!p) return;
+  const data = await new Promise((res) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.readAsDataURL(blob);
+  });
+  const dim = await new Promise((res) => {
+    const i = new Image();
+    i.onload = () => res({ w: i.naturalWidth, h: i.naturalHeight });
+    i.src = data;
+  });
+  const r = await chrome.storage.local.get("foImages");
+  const imgs = r.foImages || {};
+  imgs[p.id] = { data, width: dim.w, height: dim.h };
+  await chrome.storage.local.set({ foImages: imgs });
+  // Retina スクショを想定して CSS px に換算した初期サイズを設定
+  patchPreset({
+    srcType: "image",
+    width: Math.round(dim.w / devicePixelRatio),
+    height: Math.round(dim.h / devicePixelRatio)
+  });
+}
+
+for (const b of els.srcSeg.querySelectorAll(".seg-btn")) {
+  b.addEventListener("click", () => patchPreset({ srcType: b.dataset.src }));
+}
+els.imageDrop.addEventListener("click", () => els.imageFile.click());
+els.imageFile.addEventListener("change", () => {
+  const f = els.imageFile.files[0];
+  if (f) setImageFromBlob(f);
+  els.imageFile.value = "";
+});
+document.addEventListener("paste", (e) => {
+  if (els.imageRow.hidden || !activePreset()) return;
+  const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"));
+  if (item) {
+    e.preventDefault();
+    setImageFromBlob(item.getAsFile());
+  }
+});
+els.imageClear.addEventListener("click", async () => {
+  const p = activePreset();
+  if (!p) return;
+  const r = await chrome.storage.local.get("foImages");
+  const imgs = r.foImages || {};
+  delete imgs[p.id];
+  await chrome.storage.local.set({ foImages: imgs });
+  refresh();
 });
 // スライダー⇄数値入力を双方向に同期
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));

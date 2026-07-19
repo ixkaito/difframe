@@ -74,10 +74,27 @@
 
   <div id="fields" class="fields" style="display:none">
     <div class="field">
-      <label for="url">参照 URL</label>
-      <div class="url-row">
+      <div class="label-row">
+        <label>参照</label>
+        <div class="seg seg-mini" id="srcSeg">
+          <button type="button" class="seg-btn" data-src="url">URL</button>
+          <button type="button" class="seg-btn" data-src="image">画像</button>
+        </div>
+      </div>
+      <div class="url-row" id="urlRow">
         <input type="text" id="url" placeholder="https://example.com" />
         <button type="button" id="urlApply" class="btn-apply">適用</button>
+      </div>
+      <div id="imageRow" hidden>
+        <div class="image-drop" id="imageDrop" title="クリックしてファイルを選択、または ⌘V でスクショを貼り付け">
+          <span id="imageDropHint">クリックで選択 / ⌘V で貼り付け</span>
+          <img id="imageThumb" hidden alt="" />
+        </div>
+        <div class="image-actions" id="imageActions" hidden>
+          <span class="hint" id="imageInfo"></span>
+          <button type="button" id="imageClear" class="btn btn-ghost">クリア</button>
+        </div>
+        <input type="file" id="imageFile" accept="image/*" hidden />
       </div>
     </div>
 

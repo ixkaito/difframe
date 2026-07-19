@@ -47,6 +47,7 @@
 
   const PRESET_DEFAULTS = {
     name: "プリセット",
+    srcType: "url", // "url" | "image"（画像本体は foImages に別置き）
     url: "",
     opacity: 0.5,
     scale: 1,
@@ -94,6 +95,7 @@
   function migrate(raw) {
     if (raw && raw.version === 2) {
       raw.settings = { ...SETTINGS_DEFAULTS, ...raw.settings };
+      for (const p of raw.presets) if (!p.srcType) p.srcType = "url";
       return raw;
     }
     const s = emptyStore();
@@ -154,12 +156,13 @@
   }
 
   function load() {
-    return chrome.storage.local.get(["foStore", "foState"]).then((r) => {
+    return chrome.storage.local.get(["foStore", "foState", "foImages"]).then((r) => {
       if (r.foStore || r.foState) {
         store = migrate(r.foStore || r);
       } else {
         store = emptyStore();
       }
+      imagesCache = r.foImages || {};
       render();
     });
   }
@@ -173,7 +176,8 @@
     return url;
   }
 
-  let shield, forcedBg = false;
+  let shield, overlayImg, forcedBg = false;
+  let imagesCache = {}; // foImages: { [presetId]: { data, width, height } }
 
   function hasExplicitBackground() {
     for (const el of [document.documentElement, document.body]) {
@@ -224,7 +228,12 @@
     iframe.name = FRAME_NAME; // iframe 内の content script が自分を識別する印
     iframe.allow = "fullscreen";
 
+    // スクショ貼付モード用の画像（iframe と排他表示）
+    overlayImg = document.createElement("img");
+    overlayImg.id = "fo-overlay-img";
+
     root.appendChild(iframe);
+    root.appendChild(overlayImg);
     document.documentElement.appendChild(shield);
     document.documentElement.appendChild(root);
   }
@@ -263,20 +272,33 @@
     ensureDom();
     root.style.display = "block";
 
-    // ヘッダ剥がしルールの適用完了を待ってから iframe を読み込む
-    // （待たないと初回有効化時に XFO/CSP が残ったままリクエストされ得る）
-    const src = buildFigmaEmbed(p.url || "");
-    if (src && iframe.dataset.src !== src) {
-      iframe.dataset.src = src;
-      chrome.runtime
-        .sendMessage({ type: "setHeaderStripping", enabled: true })
-        .then(() => {
-          iframe.src = src;
-        });
-    } else if (!src && iframe.dataset.src) {
-      // URL が空のプリセットに切り替わったら、前のページを残さず空にする
-      iframe.dataset.src = "";
-      iframe.src = "about:blank";
+    const useImage = (p.srcType || "url") === "image";
+    iframe.style.display = useImage ? "none" : "block";
+    overlayImg.style.display = useImage ? "block" : "none";
+
+    if (useImage) {
+      const im = imagesCache[p.id];
+      if (im && im.data) {
+        if (overlayImg.src !== im.data) overlayImg.src = im.data;
+      } else {
+        overlayImg.removeAttribute("src");
+      }
+    } else {
+      // ヘッダ剥がしルールの適用完了を待ってから iframe を読み込む
+      // （待たないと初回有効化時に XFO/CSP が残ったままリクエストされ得る）
+      const src = buildFigmaEmbed(p.url || "");
+      if (src && iframe.dataset.src !== src) {
+        iframe.dataset.src = src;
+        chrome.runtime
+          .sendMessage({ type: "setHeaderStripping", enabled: true })
+          .then(() => {
+            iframe.src = src;
+          });
+      } else if (!src && iframe.dataset.src) {
+        // URL が空のプリセットに切り替わったら、前のページを残さず空にする
+        iframe.dataset.src = "";
+        iframe.src = "about:blank";
+      }
     }
     root.style.width = p.width + "px";
     root.style.height = p.height + "px";
@@ -297,7 +319,8 @@
     sendModeToFrame();
     applyTransform();
 
-    chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: true });
+    // 画像モードではヘッダ剥がし不要
+    chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: !useImage });
   }
 
   // ---- ポップアップからのコマンド ----
@@ -433,6 +456,10 @@
           tabOverride.presetId = null;
           saveTabOverride();
         }
+        if (imagesCache[msg.presetId]) {
+          delete imagesCache[msg.presetId];
+          chrome.storage.local.set({ foImages: imagesCache });
+        }
         save().then(render);
         sendResponse({ ok: true });
         return;
@@ -447,8 +474,13 @@
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes.foStore) {
+    if (area !== "local") return;
+    if (changes.foStore) {
       store = migrate(changes.foStore.newValue);
+      render();
+    }
+    if (changes.foImages) {
+      imagesCache = changes.foImages.newValue || {};
       render();
     }
   });
