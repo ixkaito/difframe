@@ -224,6 +224,9 @@ input[type="text"], input[type="number"], select {
 /* 数値入力はスピナーと詰まって見えないよう 6px に */
 input[type="number"] { padding: 0 6px; }
 input[type="text"]::placeholder { color: var(--muted); opacity: 0.6; }
+/* プレースホルダー（未選択 / プリセットなし）表示中のセレクトは薄く */
+select.placeholder { color: var(--muted); }
+select.placeholder option { color: var(--text); } /* ドロップダウン内の実項目は通常色 */
 input[type="text"]:focus, input[type="number"]:focus, select:focus {
   outline: 2px solid var(--focus);
   outline-offset: -1px;

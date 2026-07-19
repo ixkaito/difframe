@@ -88,10 +88,11 @@ function fill() {
 
   // プリセット一覧（未割当なら "— 未選択 —" を選択状態に）
   els.presetSelect.innerHTML = "";
+  els.presetSelect.classList.toggle("placeholder", !p);
   if (!p) {
     const o = document.createElement("option");
     o.value = "";
-    o.textContent = store.presets.length ? "— 未選択 —" : "— プリセットなし —";
+    o.textContent = store.presets.length ? "未選択" : "プリセットなし";
     els.presetSelect.appendChild(o);
   }
   for (const pr of store.presets) {
