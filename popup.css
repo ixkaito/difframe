@@ -290,7 +290,10 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var
   width: 64px;
   text-align: left;
 }
-.label-row select { width: 50%; flex: 0 0 auto; }
+/* ラベルとコントロールを詰めて横並び（コントロールが残り幅を埋める） */
+.inline-field { display: flex; align-items: center; gap: 8px; }
+.inline-field label { margin-bottom: 0; flex: 0 0 auto; }
+.inline-field select { width: auto; flex: 1; }
 .hint { margin: 4px 0 0; font-size: 12px; color: var(--muted); } /* font-size-1 */
 
 /* Radix Button (solid variant) 風 */
@@ -333,6 +336,7 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var
   border-bottom: 1px solid var(--border);
 }
 .target-block .field { margin-bottom: 0; }
+.target-block .seg { margin-bottom: 0; } /* 罫線までの余白を上下とも padding 12px に揃える */
 
 /* ---- モーダル (Radix Dialog 風) ---- */
 .modal-backdrop {
