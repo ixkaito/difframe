@@ -36,6 +36,7 @@ const els = {
   x: $("x"),
   y: $("y"),
   targetSeg: $("targetSeg"),
+  syncScroll: $("syncScroll"),
   blend: $("blend"),
   fitViewport: $("fitViewport"),
   confirmModal: $("confirmModal"),
@@ -97,6 +98,7 @@ function fill() {
   for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {
     b.classList.toggle("active", b.dataset.target === target);
   }
+  els.syncScroll.checked = !!store.settings.syncScroll;
 
   // プリセット一覧（未割当なら "— 未選択 —" を選択状態に）
   els.presetSelect.innerHTML = "";
@@ -357,6 +359,7 @@ els.fitViewport.addEventListener("click", async () => {
 for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {
   b.addEventListener("click", () => setSettings({ lock: b.dataset.target === "page" }));
 }
+els.syncScroll.addEventListener("change", () => setSettings({ syncScroll: els.syncScroll.checked }));
 
 (async () => {
   const tab = await activeTab();

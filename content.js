@@ -28,10 +28,25 @@
     // overflow: hidden の付け外しだとスクロールバーの出入りで
     // レイアウト幅が変わってしまうので、イベントで止める。
     let mode = "page";
+    let sync = false;
+    let syncBase = null; // 同期オン時点のこちらのスクロール位置（相対同期の基準）
+    let suppress = false; // 親からの同期適用中は scroll イベントを送り返さない
     window.addEventListener("message", (e) => {
       if (e.source !== window.parent) return;
       const m = e.data && e.data.__frameOverlayMode;
       if (m === "overlay" || m === "page") mode = m;
+      const sv = e.data && e.data.__frameOverlaySync;
+      if (typeof sv === "boolean") {
+        // オフ→オンの瞬間の位置を基準にする（絶対位置に飛ばさない）
+        if (sv && !sync) syncBase = { x: window.scrollX, y: window.scrollY };
+        sync = sv;
+      }
+      const s = e.data && e.data.__frameOverlayScrollDelta;
+      if (s && sync && syncBase) {
+        suppress = true;
+        window.scrollTo(syncBase.x + s.dx, syncBase.y + s.dy);
+        requestAnimationFrame(() => (suppress = false));
+      }
     });
     window.addEventListener(
       "wheel",
@@ -39,6 +54,23 @@
         if (mode === "page") e.preventDefault();
       },
       { passive: false, capture: true }
+    );
+    // オーバーレイ操作中、こちらのスクロール差分を親ページへ伝える
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!sync || !syncBase || suppress || mode !== "overlay") return;
+        window.parent.postMessage(
+          {
+            __frameOverlayScrollFromFrame: {
+              dx: window.scrollX - syncBase.x,
+              dy: window.scrollY - syncBase.y
+            }
+          },
+          "*"
+        );
+      },
+      { passive: true }
     );
     // 準備完了を親に伝えて、現在のモードを送ってもらう
     window.parent.postMessage({ __frameOverlayReady: true }, "*");
@@ -57,7 +89,7 @@
     height: 900,
     blend: "normal"
   };
-  const SETTINGS_DEFAULTS = { scope: "path", lock: true };
+  const SETTINGS_DEFAULTS = { scope: "path", lock: true, syncScroll: true };
 
   let store = null;
   let root, iframe;
@@ -319,28 +351,90 @@
     document.documentElement.appendChild(picker);
   }
 
-  // iframe 内の content script に現在の操作対象モードを伝える
+  // iframe 内の content script に現在の操作対象モードと同期設定を伝える
   function sendModeToFrame() {
     if (!iframe || !iframe.contentWindow) return;
     const mode = isEnabled() && !store.settings.lock ? "overlay" : "page";
-    iframe.contentWindow.postMessage({ __frameOverlayMode: mode }, "*");
+    iframe.contentWindow.postMessage(
+      { __frameOverlayMode: mode, __frameOverlaySync: !!store.settings.syncScroll },
+      "*"
+    );
   }
 
-  // iframe 側の準備完了通知を受けてモードを送る（初回ロード時の取りこぼし防止）
+  // ---- スクロール連動（相対同期）----
+  // オンにした瞬間の両者の位置を基準に、以後の差分だけを伝え合う。
+  // 絶対位置に飛ばさないので、オン/オフのたびにその場から連動し直せる。
+  let suppressScroll = false; // 同期適用中の scroll イベントを無視するフラグ
+  let syncBase = null; // ページ側の基準スクロール位置
+
+  function rebaseSync() {
+    syncBase = { x: window.scrollX, y: window.scrollY };
+  }
+
+  function syncScrollToOverlay() {
+    const p = activePreset();
+    if (!p || !isEnabled() || !store.settings.syncScroll || !syncBase) return;
+    if ((p.srcType || "url") === "image") {
+      applyTransform(); // 画像は translate にスクロール差分を織り込む
+    } else if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(
+        {
+          __frameOverlayScrollDelta: {
+            dx: window.scrollX - syncBase.x,
+            dy: window.scrollY - syncBase.y
+          }
+        },
+        "*"
+      );
+    }
+  }
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (suppressScroll) return;
+      syncScrollToOverlay();
+    },
+    { passive: true }
+  );
+
+  // iframe 側の準備完了通知・スクロール通知
   window.addEventListener("message", (e) => {
-    if (iframe && e.source === iframe.contentWindow && e.data && e.data.__frameOverlayReady) {
+    if (!iframe || e.source !== iframe.contentWindow || !e.data) return;
+    if (e.data.__frameOverlayReady) {
+      // iframe が読み込み直されたら、その時点を新しい基準にする
+      if (store && store.settings.syncScroll) rebaseSync();
       sendModeToFrame();
+    }
+    const s = e.data.__frameOverlayScrollFromFrame;
+    if (s && store && store.settings.syncScroll && syncBase) {
+      suppressScroll = true;
+      window.scrollTo(syncBase.x + s.dx, syncBase.y + s.dy);
+      requestAnimationFrame(() => (suppressScroll = false));
     }
   });
 
   function applyTransform() {
     const p = activePreset();
     if (!root || !p) return;
-    root.style.transform = `translate(${p.x}px, ${p.y}px) scale(${p.scale})`;
+    let x = p.x;
+    let y = p.y;
+    // 画像モードのスクロール連動: 基準からのスクロール差分だけ画像をずらす
+    if (store.settings.syncScroll && syncBase && (p.srcType || "url") === "image") {
+      x -= window.scrollX - syncBase.x;
+      y -= window.scrollY - syncBase.y;
+    }
+    root.style.transform = `translate(${x}px, ${y}px) scale(${p.scale})`;
   }
+
+  let prevSync = false;
 
   function render() {
     if (!store) return;
+    // 同期がオフ→オンに切り替わった瞬間の位置を新しい基準にする
+    const syncNow = !!store.settings.syncScroll;
+    if (syncNow && !prevSync) rebaseSync();
+    prevSync = syncNow;
     if (!isEnabled()) {
       if (root) root.style.display = "none";
       if (shield) shield.style.display = "none";
@@ -399,6 +493,7 @@
     shield.style.display = lock ? "none" : "block";
     sendModeToFrame();
     applyTransform();
+    syncScrollToOverlay();
 
     // 画像モードではヘッダ剥がし不要
     chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: !useImage });
