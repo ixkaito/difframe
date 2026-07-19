@@ -173,36 +173,60 @@
     return url;
   }
 
-  let frame;
+  let shield, forcedBg = false;
+
+  function hasExplicitBackground() {
+    for (const el of [document.documentElement, document.body]) {
+      if (!el) continue;
+      const c = getComputedStyle(el).backgroundColor;
+      if (c && c !== "transparent" && c !== "rgba(0, 0, 0, 0)") return true;
+    }
+    return false;
+  }
+
+  // 背景が一切ないページはキャンバスが「ブラウザのデフォルト白」で
+  // 塗られ、これは CSS の描画物ではないので mix-blend-mode の合成対象に
+  // ならない。差分モード中だけ html に白背景を明示して合成対象にする。
+  function ensureCanvasBackground(diff) {
+    if (diff && !forcedBg && !hasExplicitBackground()) {
+      document.documentElement.style.backgroundColor = "#fff";
+      forcedBg = true;
+    } else if (!diff && forcedBg) {
+      document.documentElement.style.backgroundColor = "";
+      forcedBg = false;
+    }
+  }
 
   function ensureDom() {
     if (root) return;
-    root = document.createElement("div");
-    root.id = "fo-overlay-root";
 
-    // frame: transform・サイズ・不透明度・ブレンドを担うラッパー
-    frame = document.createElement("div");
-    frame.id = "fo-frame";
-
-    iframe = document.createElement("iframe");
-    iframe.id = "fo-overlay-iframe";
-    iframe.name = FRAME_NAME; // iframe 内の content script が自分を識別する印
-    iframe.allow = "fullscreen";
-
-    frame.appendChild(iframe);
-    root.appendChild(frame);
-    document.documentElement.appendChild(root);
-
-    // オーバーレイ操作中、iframe の外（root）に当たった wheel を止める。
-    // root は fixed inset:0 だがスクロールコンテナではないため、
-    // 放っておくと実装ページへスクロールが流れてしまう。
-    root.addEventListener(
+    // shield: オーバーレイ操作モード中、iframe の外に当たった wheel を
+    // 止めるための全画面透明レイヤー（スクロールがページへ流れないように）
+    shield = document.createElement("div");
+    shield.id = "fo-shield";
+    shield.addEventListener(
       "wheel",
       (e) => {
         if (isEnabled() && !store.settings.lock) e.preventDefault();
       },
       { passive: false }
     );
+
+    // root: サイズ・transform・不透明度・ブレンド・背景をすべて持つ
+    // 単一のオーバーレイ枠。ページと mix-blend-mode で合成するには
+    // html 直下（ルートのスタッキングコンテキスト直属）である必要が
+    // あるため、全画面ラッパーの入れ子にはしない。
+    root = document.createElement("div");
+    root.id = "fo-overlay-root";
+
+    iframe = document.createElement("iframe");
+    iframe.id = "fo-overlay-iframe";
+    iframe.name = FRAME_NAME; // iframe 内の content script が自分を識別する印
+    iframe.allow = "fullscreen";
+
+    root.appendChild(iframe);
+    document.documentElement.appendChild(shield);
+    document.documentElement.appendChild(root);
   }
 
   // iframe 内の content script に現在の操作対象モードを伝える
@@ -221,14 +245,16 @@
 
   function applyTransform() {
     const p = activePreset();
-    if (!frame || !p) return;
-    frame.style.transform = `translate(${p.x}px, ${p.y}px) scale(${p.scale})`;
+    if (!root || !p) return;
+    root.style.transform = `translate(${p.x}px, ${p.y}px) scale(${p.scale})`;
   }
 
   function render() {
     if (!store) return;
     if (!isEnabled()) {
       if (root) root.style.display = "none";
+      if (shield) shield.style.display = "none";
+      ensureCanvasBackground(false);
       sendModeToFrame();
       chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: false });
       return;
@@ -252,15 +278,22 @@
       iframe.dataset.src = "";
       iframe.src = "about:blank";
     }
-    // サイズは frame に、ブレンド・不透明度も frame（グループ）に適用して確実に効かせる
-    frame.style.width = p.width + "px";
-    frame.style.height = p.height + "px";
-    frame.style.opacity = String(p.opacity);
-    frame.style.mixBlendMode = p.blend || "normal";
+    root.style.width = p.width + "px";
+    root.style.height = p.height + "px";
+    // 差分 = mix-blend-mode: difference。root は html 直下なので
+    // ページの描画結果と合成される。不透明度 1.0 のとき一致部分は
+    // |C-C| = 0 → 真っ黒。実装ページ側に背景が無い場合はキャンバスが
+    // 合成対象にならないため、ensureCanvasBackground で白を明示する。
+    const diff = p.blend === "difference";
+    root.style.mixBlendMode = diff ? "difference" : "";
+    root.style.opacity = String(p.opacity);
+    ensureCanvasBackground(diff);
 
     const lock = store.settings.lock;
     iframe.style.pointerEvents = lock ? "none" : "auto";
     root.style.pointerEvents = lock ? "none" : "auto";
+    // シールドはオーバーレイ操作モード中だけ有効
+    shield.style.display = lock ? "none" : "block";
     sendModeToFrame();
     applyTransform();
 

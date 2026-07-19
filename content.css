@@ -1,16 +1,25 @@
+/* オーバーレイ本体。サイズ・transform・不透明度・ブレンドをすべて持つ。
+   ページと mix-blend-mode で合成するため html 直下に置く（入れ子の
+   ラッパーで包むと、そのラッパーが isolation 境界になって効かない）。 */
 #fo-overlay-root {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   z-index: 2147483646;
+  transform-origin: top left;
+  /* 参照ページが背景なし（=透明）でも、単体表示と同じ白背景で描画する。
+     差分モードでは合成の材料としても必須。 */
+  background: #fff;
   pointer-events: none; /* デフォルトは下のページを操作可能 */
 }
 
-#fo-frame {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: top left;
-  pointer-events: none;
+/* オーバーレイ操作モード中だけ表示する全画面透明レイヤー。
+   iframe の外に当たった wheel を受け止めてページへの連鎖を防ぐ。 */
+#fo-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  display: none;
 }
 
 #fo-overlay-iframe {
@@ -22,4 +31,3 @@
   background: transparent;
   pointer-events: none; /* ロック時。解除で auto に切り替える */
 }
-
