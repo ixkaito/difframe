@@ -1,7 +1,7 @@
 /* オーバーレイ本体。サイズ・transform・不透明度・ブレンドをすべて持つ。
    ページと mix-blend-mode で合成するため html 直下に置く（入れ子の
    ラッパーで包むと、そのラッパーが isolation 境界になって効かない）。 */
-#fo-overlay-root {
+#df-overlay-root {
   position: fixed;
   top: 0;
   left: 0;
@@ -15,14 +15,14 @@
 
 /* オーバーレイ操作モード中だけ表示する全画面透明レイヤー。
    iframe の外に当たった wheel を受け止めてページへの連鎖を防ぐ。 */
-#fo-shield {
+#df-shield {
   position: fixed;
   inset: 0;
   z-index: 2147483645;
   display: none;
 }
 
-#fo-overlay-iframe {
+#df-overlay-iframe {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -33,7 +33,7 @@
 }
 
 /* ページ上の画像ピッカー（ドロップゾーン） */
-#fo-pick {
+#df-pick {
   position: fixed;
   inset: 0;
   z-index: 2147483647;
@@ -44,7 +44,7 @@
   background: rgba(0, 0, 0, 0.45);
   cursor: pointer;
 }
-#fo-pick-box {
+#df-pick-box {
   width: 100%;
   max-width: 480px;
   padding: 28px 24px;
@@ -55,8 +55,8 @@
   text-align: center;
   pointer-events: none;
 }
-#fo-pick-box .fo-pick-sub { font-size: 12px; opacity: 0.8; }
-#fo-pick.fo-pick-over #fo-pick-box {
+#df-pick-box .df-pick-sub { font-size: 12px; opacity: 0.8; }
+#df-pick.df-pick-over #df-pick-box {
   border-color: #fff;
   background: rgba(255, 255, 255, 0.1);
 }
@@ -64,7 +64,7 @@
 /* 画像モードでは root をビューポート全面のスクロールコンテナにする。
    幅・高さ・X/Y・拡大率は img 側に適用され、ビューポートを超えた分を
    スクロールで見られる。 */
-#fo-overlay-root.fo-image-mode {
+#df-overlay-root.df-image-mode {
   /* 100vw/vh はページのスクロールバー幅を含むため、root 自身の
      スクロールバーは iframe のときと同様に画面外へ自然に隠れる */
   width: 100vw;
@@ -77,7 +77,7 @@
 /* スクショ貼付モードの画像（iframe と排他表示）。
    サイズは JS がインライン(!important)で与える。ページ側の img リセット
    （max-width: 100% など）に負けないよう防御する。 */
-#fo-overlay-img {
+#df-overlay-img {
   display: none;
   transform-origin: top left;
   max-width: none !important;

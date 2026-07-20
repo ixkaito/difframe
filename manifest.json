@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Frame Overlay (PerfectPixel for iframes)",
+  "name": "Difframe",
   "version": "0.1.0",
   "description": "参考サイトや Figma プロトタイプを iframe で実装画面に重ねて表示するピクセルパーフェクト用ツール。",
   "permissions": [
@@ -16,7 +16,7 @@
     "scripts": ["background.js"]
   },
   "action": {
-    "default_title": "Frame Overlay",
+    "default_title": "Difframe",
     "default_popup": "popup.html"
   },
   "content_scripts": [

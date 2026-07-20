@@ -1,16 +1,16 @@
 // 実装ページ側に注入され、オーバーレイ iframe を生成・制御する。
 // ストレージ構造 (v2):
-//   foStore = {
+//   dfStore = {
 //     version: 2,
 //     presets: [{ id, name, url, opacity, scale, x, y, width, height, blend }],
 //     bindings: { "<key>": { presetId, enabled } },  // key = host or host+path
 //     settings: { scope: "host" | "path", lock: bool }
 //   }
 (() => {
-  if (window.__frameOverlayInjected) return;
-  window.__frameOverlayInjected = true;
+  if (window.__difframeInjected) return;
+  window.__difframeInjected = true;
 
-  const FRAME_NAME = "fo-overlay-frame";
+  const FRAME_NAME = "df-overlay-frame";
 
   // ---- オーバーレイ iframe の中で動く分岐（all_frames で注入される）----
   if (window !== window.top) {
@@ -33,15 +33,15 @@
     let suppress = false; // 親からの同期適用中は scroll イベントを送り返さない
     window.addEventListener("message", (e) => {
       if (e.source !== window.parent) return;
-      const m = e.data && e.data.__frameOverlayMode;
+      const m = e.data && e.data.__difframeMode;
       if (m === "overlay" || m === "page") mode = m;
-      const sv = e.data && e.data.__frameOverlaySync;
+      const sv = e.data && e.data.__difframeSync;
       if (typeof sv === "boolean") {
         // オフ→オンの瞬間の位置を基準にする（絶対位置に飛ばさない）
         if (sv && !sync) syncBase = { x: window.scrollX, y: window.scrollY };
         sync = sv;
       }
-      const s = e.data && e.data.__frameOverlayScrollDelta;
+      const s = e.data && e.data.__difframeScrollDelta;
       if (s && sync && syncBase) {
         suppress = true;
         window.scrollTo(syncBase.x + s.dx, syncBase.y + s.dy);
@@ -62,7 +62,7 @@
         if (!sync || !syncBase || suppress || mode !== "overlay") return;
         window.parent.postMessage(
           {
-            __frameOverlayScrollFromFrame: {
+            __difframeScrollFromFrame: {
               dx: window.scrollX - syncBase.x,
               dy: window.scrollY - syncBase.y
             }
@@ -73,13 +73,13 @@
       { passive: true }
     );
     // 準備完了を親に伝えて、現在のモードを送ってもらう
-    window.parent.postMessage({ __frameOverlayReady: true }, "*");
+    window.parent.postMessage({ __difframeReady: true }, "*");
     return;
   }
 
   const PRESET_DEFAULTS = {
     name: "プリセット",
-    srcType: "url", // "url" | "image"（画像本体は foImages に別置き）
+    srcType: "url", // "url" | "image"（画像本体は dfImages に別置き）
     url: "",
     opacity: 0.5,
     scale: 1,
@@ -97,7 +97,7 @@
   // ---- タブローカルの上書き ----
   // sessionStorage はタブごとに独立し、リロードしても残り、タブを閉じると
   // 消えるので「このタブだけ別プリセット」の置き場所にちょうどいい。
-  const TAB_OVERRIDE_KEY = "__frameOverlayTabOverride";
+  const TAB_OVERRIDE_KEY = "__difframeTabOverride";
   let tabOverride = null; // { presetId, enabled } | null
 
   function loadTabOverride() {
@@ -131,9 +131,9 @@
       return raw;
     }
     const s = emptyStore();
-    if (raw && raw.foState) {
+    if (raw && raw.dfState) {
       // v1 単一 state -> プリセット1件へ変換
-      const old = raw.foState;
+      const old = raw.dfState;
       const p = { id: newId(), ...PRESET_DEFAULTS };
       for (const k of Object.keys(PRESET_DEFAULTS)) if (old[k] != null) p[k] = old[k];
       p.name = "既定";
@@ -184,17 +184,17 @@
   }
 
   function save() {
-    return chrome.storage.local.set({ foStore: store });
+    return chrome.storage.local.set({ dfStore: store });
   }
 
   function load() {
-    return chrome.storage.local.get(["foStore", "foState", "foImages"]).then((r) => {
-      if (r.foStore || r.foState) {
-        store = migrate(r.foStore || r);
+    return chrome.storage.local.get(["dfStore", "dfState", "dfImages"]).then((r) => {
+      if (r.dfStore || r.dfState) {
+        store = migrate(r.dfStore || r);
       } else {
         store = emptyStore();
       }
-      imagesCache = r.foImages || {};
+      imagesCache = r.dfImages || {};
       render();
     });
   }
@@ -203,13 +203,13 @@
   function buildFigmaEmbed(url) {
     if (/^https?:\/\/embed\.figma\.com\//.test(url)) return url;
     if (/^https?:\/\/(www\.)?figma\.com\/(proto|file|design|board)\//.test(url)) {
-      return "https://www.figma.com/embed?embed_host=frame-overlay&url=" + encodeURIComponent(url);
+      return "https://www.figma.com/embed?embed_host=difframe&url=" + encodeURIComponent(url);
     }
     return url;
   }
 
   let shield, overlayImg, forcedBg = false;
-  let imagesCache = {}; // foImages: { [presetId]: { data, width, height } }
+  let imagesCache = {}; // dfImages: { [presetId]: { data, width, height } }
 
   function hasExplicitBackground() {
     for (const el of [document.documentElement, document.body]) {
@@ -239,7 +239,7 @@
     // shield: オーバーレイ操作モード中、iframe の外に当たった wheel を
     // 止めるための全画面透明レイヤー（スクロールがページへ流れないように）
     shield = document.createElement("div");
-    shield.id = "fo-shield";
+    shield.id = "df-shield";
     shield.addEventListener(
       "wheel",
       (e) => {
@@ -253,16 +253,16 @@
     // html 直下（ルートのスタッキングコンテキスト直属）である必要が
     // あるため、全画面ラッパーの入れ子にはしない。
     root = document.createElement("div");
-    root.id = "fo-overlay-root";
+    root.id = "df-overlay-root";
 
     iframe = document.createElement("iframe");
-    iframe.id = "fo-overlay-iframe";
+    iframe.id = "df-overlay-iframe";
     iframe.name = FRAME_NAME; // iframe 内の content script が自分を識別する印
     iframe.allow = "fullscreen";
 
     // スクショ貼付モード用の画像（iframe と排他表示）
     overlayImg = document.createElement("img");
-    overlayImg.id = "fo-overlay-img";
+    overlayImg.id = "df-overlay-img";
 
     root.appendChild(iframe);
     root.appendChild(overlayImg);
@@ -299,7 +299,7 @@
       const img = new Image();
       img.onload = () => {
         imagesCache[presetId] = { data, width: img.naturalWidth, height: img.naturalHeight };
-        chrome.storage.local.set({ foImages: imagesCache });
+        chrome.storage.local.set({ dfImages: imagesCache });
         const p = store.presets.find((x) => x.id === presetId);
         if (p) {
           p.srcType = "image";
@@ -324,18 +324,18 @@
   function openPicker(presetId) {
     closePicker();
     picker = document.createElement("div");
-    picker.id = "fo-pick";
+    picker.id = "df-pick";
     picker.innerHTML =
-      '<div id="fo-pick-box">画像をここにドロップ<br>' +
-      '<span class="fo-pick-sub">または</span><br>' +
+      '<div id="df-pick-box">画像をここにドロップ<br>' +
+      '<span class="df-pick-sub">または</span><br>' +
       "クリックで画像を選択<br>" +
-      '<span class="fo-pick-sub">(Esc でキャンセル)</span></div>';
+      '<span class="df-pick-sub">(Esc でキャンセル)</span></div>';
 
     picker.addEventListener("dragover", (e) => {
       e.preventDefault();
-      picker.classList.add("fo-pick-over");
+      picker.classList.add("df-pick-over");
     });
-    picker.addEventListener("dragleave", () => picker.classList.remove("fo-pick-over"));
+    picker.addEventListener("dragleave", () => picker.classList.remove("df-pick-over"));
     picker.addEventListener("drop", (e) => {
       e.preventDefault();
       const f = [...(e.dataTransfer?.files || [])].find((x) => x.type.startsWith("image/"));
@@ -372,7 +372,7 @@
     if (!iframe || !iframe.contentWindow) return;
     const mode = isEnabled() && !store.settings.lock ? "overlay" : "page";
     iframe.contentWindow.postMessage(
-      { __frameOverlayMode: mode, __frameOverlaySync: !!store.settings.syncScroll },
+      { __difframeMode: mode, __difframeSync: !!store.settings.syncScroll },
       "*"
     );
   }
@@ -405,7 +405,7 @@
         requestAnimationFrame(() => (suppressRootScroll = false));
       }
     } else if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ __frameOverlayScrollDelta: { dx, dy } }, "*");
+      iframe.contentWindow.postMessage({ __difframeScrollDelta: { dx, dy } }, "*");
     }
   }
 
@@ -421,12 +421,12 @@
   // iframe 側の準備完了通知・スクロール通知
   window.addEventListener("message", (e) => {
     if (!iframe || e.source !== iframe.contentWindow || !e.data) return;
-    if (e.data.__frameOverlayReady) {
+    if (e.data.__difframeReady) {
       // iframe が読み込み直されたら、その時点を新しい基準にする
       if (store && store.settings.syncScroll) rebaseSync();
       sendModeToFrame();
     }
-    const s = e.data.__frameOverlayScrollFromFrame;
+    const s = e.data.__difframeScrollFromFrame;
     if (s && store && store.settings.syncScroll && syncBase) {
       suppressScroll = true;
       window.scrollTo(syncBase.x + s.dx, syncBase.y + s.dy);
@@ -471,7 +471,7 @@
     const useImage = (p.srcType || "url") === "image";
     iframe.style.display = useImage ? "none" : "block";
     overlayImg.style.display = useImage ? "block" : "none";
-    root.classList.toggle("fo-image-mode", useImage);
+    root.classList.toggle("df-image-mode", useImage);
 
     if (useImage) {
       const im = imagesCache[p.id];
@@ -664,7 +664,7 @@
         }
         if (imagesCache[msg.presetId]) {
           delete imagesCache[msg.presetId];
-          chrome.storage.local.set({ foImages: imagesCache });
+          chrome.storage.local.set({ dfImages: imagesCache });
         }
         save().then(render);
         sendResponse({ ok: true });
@@ -686,12 +686,12 @@
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
-    if (changes.foStore) {
-      store = migrate(changes.foStore.newValue);
+    if (changes.dfStore) {
+      store = migrate(changes.dfStore.newValue);
       render();
     }
-    if (changes.foImages) {
-      imagesCache = changes.foImages.newValue || {};
+    if (changes.dfImages) {
+      imagesCache = changes.dfImages.newValue || {};
       render();
     }
   });

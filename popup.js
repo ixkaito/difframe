@@ -247,8 +247,8 @@ els.url.addEventListener("keydown", (e) => {
 
 // ---- スクショ貼付（参照タイプ: 画像）----
 async function loadThumb(presetId) {
-  const r = await chrome.storage.local.get("foImages");
-  const im = r.foImages && r.foImages[presetId];
+  const r = await chrome.storage.local.get("dfImages");
+  const im = r.dfImages && r.dfImages[presetId];
   if (im) {
     els.imageThumb.src = im.data;
     els.imageThumb.hidden = false;
@@ -278,10 +278,10 @@ async function setImageFromBlob(blob) {
     i.onload = () => res({ w: i.naturalWidth, h: i.naturalHeight });
     i.src = data;
   });
-  const r = await chrome.storage.local.get("foImages");
-  const imgs = r.foImages || {};
+  const r = await chrome.storage.local.get("dfImages");
+  const imgs = r.dfImages || {};
   imgs[p.id] = { data, width: dim.w, height: dim.h };
-  await chrome.storage.local.set({ foImages: imgs });
+  await chrome.storage.local.set({ dfImages: imgs });
   // Retina スクショを想定して CSS px に換算した初期サイズを設定
   patchPreset({
     srcType: "image",
@@ -313,10 +313,10 @@ els.imageClear.addEventListener("click", async (e) => {
   e.stopPropagation(); // ドロップエリアのクリック（ページ上ピッカー起動）を抑止
   const p = activePreset();
   if (!p) return;
-  const r = await chrome.storage.local.get("foImages");
-  const imgs = r.foImages || {};
+  const r = await chrome.storage.local.get("dfImages");
+  const imgs = r.dfImages || {};
   delete imgs[p.id];
-  await chrome.storage.local.set({ foImages: imgs });
+  await chrome.storage.local.set({ dfImages: imgs });
   refresh();
 });
 // スライダー⇄数値入力を双方向に同期
@@ -361,8 +361,8 @@ els.fitViewport.addEventListener("click", async () => {
   if (!p) return;
   if ((p.srcType || "url") === "image") {
     // 画像モード: 画像の元のサイズ（CSS px 換算）に戻す
-    const r = await chrome.storage.local.get("foImages");
-    const im = r.foImages && r.foImages[p.id];
+    const r = await chrome.storage.local.get("dfImages");
+    const im = r.dfImages && r.dfImages[p.id];
     if (im) {
       patchPreset({
         width: Math.round(im.width / devicePixelRatio),
