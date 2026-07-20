@@ -38,6 +38,7 @@ const els = {
   targetSeg: $("targetSeg"),
   syncScroll: $("syncScroll"),
   blend: $("blend"),
+  blendHint: $("blendHint"),
   fitViewport: $("fitViewport"),
   confirmModal: $("confirmModal"),
   confirmMsg: $("confirmMsg"),
@@ -150,6 +151,7 @@ function fill() {
     els.x.value = p.x;
     els.y.value = p.y;
     els.blend.value = p.blend;
+    els.blendHint.hidden = p.blend !== "difference";
   }
 }
 
