@@ -268,6 +268,22 @@
     root.appendChild(overlayImg);
     document.documentElement.appendChild(shield);
     document.documentElement.appendChild(root);
+
+    // 画像モード: 覗き窓（root）のスクロールをページへ逆同期
+    // （同期適用によるスクロールは suppressRootScroll で除外）
+    root.addEventListener(
+      "scroll",
+      () => {
+        if (suppressRootScroll || !store || !store.settings.syncScroll || !syncBase) return;
+        suppressScroll = true;
+        window.scrollTo(
+          syncBase.x + (root.scrollLeft - syncBase.rx),
+          syncBase.y + (root.scrollTop - syncBase.ry)
+        );
+        requestAnimationFrame(() => (suppressScroll = false));
+      },
+      { passive: true }
+    );
   }
 
   // ---- ページ上の画像ピッカー ----
@@ -365,27 +381,31 @@
   // オンにした瞬間の両者の位置を基準に、以後の差分だけを伝え合う。
   // 絶対位置に飛ばさないので、オン/オフのたびにその場から連動し直せる。
   let suppressScroll = false; // 同期適用中の scroll イベントを無視するフラグ
-  let syncBase = null; // ページ側の基準スクロール位置
+  let suppressRootScroll = false; // root（画像の覗き窓）への同期適用中フラグ
+  let syncBase = null; // 基準スクロール位置（ページ側 + root 側）
 
   function rebaseSync() {
-    syncBase = { x: window.scrollX, y: window.scrollY };
+    syncBase = {
+      x: window.scrollX,
+      y: window.scrollY,
+      rx: root ? root.scrollLeft : 0,
+      ry: root ? root.scrollTop : 0
+    };
   }
 
   function syncScrollToOverlay() {
     const p = activePreset();
     if (!p || !isEnabled() || !store.settings.syncScroll || !syncBase) return;
+    const dx = window.scrollX - syncBase.x;
+    const dy = window.scrollY - syncBase.y;
     if ((p.srcType || "url") === "image") {
-      applyTransform(); // 画像は translate にスクロール差分を織り込む
+      if (root) {
+        suppressRootScroll = true;
+        root.scrollTo(syncBase.rx + dx, syncBase.ry + dy);
+        requestAnimationFrame(() => (suppressRootScroll = false));
+      }
     } else if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage(
-        {
-          __frameOverlayScrollDelta: {
-            dx: window.scrollX - syncBase.x,
-            dy: window.scrollY - syncBase.y
-          }
-        },
-        "*"
-      );
+      iframe.contentWindow.postMessage({ __frameOverlayScrollDelta: { dx, dy } }, "*");
     }
   }
 
@@ -417,14 +437,15 @@
   function applyTransform() {
     const p = activePreset();
     if (!root || !p) return;
-    let x = p.x;
-    let y = p.y;
-    // 画像モードのスクロール連動: 基準からのスクロール差分だけ画像をずらす
-    if (store.settings.syncScroll && syncBase && (p.srcType || "url") === "image") {
-      x -= window.scrollX - syncBase.x;
-      y -= window.scrollY - syncBase.y;
+    const t = `translate(${p.x}px, ${p.y}px) scale(${p.scale})`;
+    if ((p.srcType || "url") === "image") {
+      // 画像モード: root はビューポート全面のまま、img を動かす
+      root.style.transform = "";
+      overlayImg.style.transform = t;
+    } else {
+      overlayImg.style.transform = "";
+      root.style.transform = t;
     }
-    root.style.transform = `translate(${x}px, ${y}px) scale(${p.scale})`;
   }
 
   let prevSync = false;
@@ -450,6 +471,7 @@
     const useImage = (p.srcType || "url") === "image";
     iframe.style.display = useImage ? "none" : "block";
     overlayImg.style.display = useImage ? "block" : "none";
+    root.classList.toggle("fo-image-mode", useImage);
 
     if (useImage) {
       const im = imagesCache[p.id];
@@ -475,8 +497,16 @@
         iframe.src = "about:blank";
       }
     }
-    root.style.width = p.width + "px";
-    root.style.height = p.height + "px";
+    if (useImage) {
+      // root はビューポート全面（CSS の inset: 0 に任せる）、サイズは img に
+      root.style.width = "";
+      root.style.height = "";
+      overlayImg.style.setProperty("width", p.width + "px", "important");
+      overlayImg.style.setProperty("height", p.height + "px", "important");
+    } else {
+      root.style.width = p.width + "px";
+      root.style.height = p.height + "px";
+    }
     // 差分 = mix-blend-mode: difference。root は html 直下なので
     // ページの描画結果と合成される。不透明度 1.0 のとき一致部分は
     // |C-C| = 0 → 真っ黒。実装ページ側に背景が無い場合はキャンバスが

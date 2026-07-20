@@ -61,12 +61,31 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* スクショ貼付モードの画像（iframe と排他表示） */
+/* 画像モードでは root をビューポート全面のスクロールコンテナにする。
+   幅・高さ・X/Y・拡大率は img 側に適用され、ビューポートを超えた分を
+   スクロールで見られる。 */
+#fo-overlay-root.fo-image-mode {
+  /* 100vw/vh はページのスクロールバー幅を含むため、root 自身の
+     スクロールバーは iframe のときと同様に画面外へ自然に隠れる */
+  width: 100vw;
+  height: 100vh;
+  background: transparent; /* 画像の外はページがそのまま見える */
+  overflow: auto !important;
+  overscroll-behavior: none !important; /* 端に達してもページへ連鎖させない */
+}
+
+/* スクショ貼付モードの画像（iframe と排他表示）。
+   サイズは JS がインライン(!important)で与える。ページ側の img リセット
+   （max-width: 100% など）に負けないよう防御する。 */
 #fo-overlay-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   display: none;
+  transform-origin: top left;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
   pointer-events: none;
 }

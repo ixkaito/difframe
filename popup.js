@@ -134,6 +134,8 @@ function fill() {
   els.urlRow.hidden = srcType !== "url";
   els.imageRow.hidden = srcType !== "image";
   if (p && srcType === "image") loadThumb(p.id);
+  els.fitViewport.textContent =
+    srcType === "image" ? "画像の元のサイズに戻す" : "画面に合わせる";
 
   if (p) {
     els.url.value = p.url;
@@ -353,6 +355,20 @@ els.x.addEventListener("change", () => patchPreset({ x: parseInt(els.x.value, 10
 els.y.addEventListener("change", () => patchPreset({ y: parseInt(els.y.value, 10) || 0 }));
 els.blend.addEventListener("change", () => patchPreset({ blend: els.blend.value }));
 els.fitViewport.addEventListener("click", async () => {
+  const p = activePreset();
+  if (!p) return;
+  if ((p.srcType || "url") === "image") {
+    // 画像モード: 画像の元のサイズ（CSS px 換算）に戻す
+    const r = await chrome.storage.local.get("foImages");
+    const im = r.foImages && r.foImages[p.id];
+    if (im) {
+      patchPreset({
+        width: Math.round(im.width / devicePixelRatio),
+        height: Math.round(im.height / devicePixelRatio)
+      });
+    }
+    return;
+  }
   const vp = await send({ type: "getViewport" });
   if (vp) patchPreset({ width: vp.width, height: vp.height, x: 0, y: 0 });
 });
