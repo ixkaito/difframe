@@ -338,8 +338,9 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]:focus-visible { outline: none; }
 input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--focus); outline-offset: 2px; }
 input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--focus); outline-offset: 2px; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } /* space-2 */
-.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+/* 要素間の隙間は 6px に統一（プリセットバー・URL 行と同じ） */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px; }
 .grid4 .field { margin-bottom: 0; }
 
 /* ラベル＋数値入力の横並び（スライダーはその下） */
@@ -351,8 +352,9 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var
 }
 .label-row label { margin-bottom: 0; }
 .label-row input[type="number"] {
+  /* calc(50% - 3px) = grid4 の列幅と同じ（真下の 高さ/Y と左右が揃う） */
   flex: 0 0 auto;
-  width: 64px;
+  width: calc(50% - 3px);
   text-align: left;
 }
 /* ラベルとコントロールを詰めて横並び（コントロールが残り幅を埋める） */
