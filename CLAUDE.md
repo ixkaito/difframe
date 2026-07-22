@@ -10,6 +10,7 @@
 - `background.js` — declarativeNetRequest によるヘッダ剥がし（X-Frame-Options/CSP 除去）
 - `content.js` / `content.css` — オーバーレイ本体。`all_frames: true` でオーバーレイ iframe 自身にも注入される
 - `popup.html` / `popup.js` / `popup.css` — 設定 UI（プリセット管理など）
+- `icons/` — アイコン。SVG 原本（`icon.svg`=黒、`icon-light.svg`=白）から `sips -s format png -z <size> <size>` で各サイズの PNG を生成。黒はライトテーマ用、白はダークテーマ用（Firefox の `theme_icons`）
 
 ## 主な機能
 
@@ -49,7 +50,7 @@
 - **オーバーレイON時のフェード/トランジションの原因不明の挙動**: 一度は全称セレクタ漏れを疑い防御CSSを入れたが別問題と判明しロールバック。原因未特定
 - **スクロールバーの「レイヤー」切り替え**（操作対象によってどちらのバーを見せるか）: ネイティブでは不可能と結論、自前インジケータ案は未実装のまま
 - **`label`のグローバルmargin指定のスコープ整理**: 複数回話題に出たが未着手
-- **公開準備一式**: README、アイコン（`manifest.json`に`icons`未設定）、`browser_specific_settings.gecko.id`を`frame-overlay@example.com`→`difframe@example.com`へ変更（ID変更で拡張機能IDが変わり既存プリセットが消えるため、公開直前に一度だけ行う予定）
+- **公開準備一式**: README、`browser_specific_settings.gecko.id`を`frame-overlay@example.com`→`difframe@example.com`へ変更（ID変更で拡張機能IDが変わり既存プリセットが消えるため、公開直前に一度だけ行う予定）
 
 ## このプロジェクトでの流儀
 
