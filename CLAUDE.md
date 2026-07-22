@@ -51,7 +51,7 @@
 - **オーバーレイON時のフェード/トランジションの原因不明の挙動**: 一度は全称セレクタ漏れを疑い防御CSSを入れたが別問題と判明しロールバック。原因未特定
 - **スクロールバーの「レイヤー」切り替え**（操作対象によってどちらのバーを見せるか）: ネイティブでは不可能と結論、自前インジケータ案は未実装のまま
 - **`label`のグローバルmargin指定のスコープ整理**: 複数回話題に出たが未着手
-- **公開準備一式**: README、`browser_specific_settings.gecko.id`を`frame-overlay@example.com`→`difframe@example.com`へ変更（ID変更で拡張機能IDが変わり既存プリセットが消えるため、公開直前に一度だけ行う予定）
+- **公開準備の残り**: `browser_specific_settings.gecko.id`を`frame-overlay@example.com`→`difframe@example.com`へ変更（ID変更で拡張機能IDが変わり既存プリセットが消えるため、公開直前に一度だけ行う予定）。README・LICENSE(MIT)・アイコンは対応済み
 
 ## このプロジェクトでの流儀
 
