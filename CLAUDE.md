@@ -42,6 +42,7 @@
 - ヘッダーの縦ズレ: グローバル`label { margin-bottom: 5px }`をトグル用labelが継承していたのが原因（`top: -1.5px`の光学補正ハックは誤診断だった。表面対処ではなく`.toggle`に`margin:0`を当てて根本解決）
 - Chromeでスライダー進捗が塗られない: `::-moz-range-progress`はFirefox専用。WebKitは`linear-gradient`+CSS変数`--fill`で塗る必要がある
 - 画像モードでスクロールが頭打ち: `#df-overlay-root`側に幅/高さを与えていたため。幅/高さ/拡大率は`<img>`側、rootはビューポート全面という構造に変更して解決
+- `typeof browser`でのFirefox判定が誤動作: Chrome 148+は`browser`名前空間を標準サポートするため常にtrueになる。Firefox専用API（`browser.runtime.getBrowserInfo`）の有無で判定すること
 
 ## 保留中・未着手
 

@@ -77,6 +77,24 @@
     return;
   }
 
+  // ---- ツールバーアイコンのダークモード対応（Chrome 用）----
+  // Chrome には Firefox の theme_icons に相当する仕組みが無く、service worker
+  // では matchMedia も使えないため、ページ側で検知して background に伝える。
+  {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const report = () => {
+      // 拡張機能のリロード直後は古い content script のコンテキストが
+      // 失効していて sendMessage が投げるので握りつぶす
+      try {
+        chrome.runtime
+          .sendMessage({ type: "setColorScheme", dark: mq.matches })
+          .catch(() => {});
+      } catch {}
+    };
+    mq.addEventListener("change", report);
+    report();
+  }
+
   const PRESET_DEFAULTS = {
     name: "プリセット",
     srcType: "url", // "url" | "image"（画像本体は dfImages に別置き）

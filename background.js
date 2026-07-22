@@ -35,7 +35,36 @@ async function setHeaderStripping(tabId, enabled) {
   });
 }
 
+// Chrome にはテーマ対応アイコンの仕組みが無いため、content script から届く
+// prefers-color-scheme に応じて setIcon で黒/白アイコンを切り替える。
+// Firefox は manifest の theme_icons が担当しており、setIcon を呼ぶと
+// theme_icons を上書きしてしまうため何もしない。
+// 注意: Chrome 148+ は `browser` 名前空間を持つため typeof browser では
+// 判定できない。Firefox 専用 API の有無で判定する。
+const IS_FIREFOX =
+  typeof browser !== "undefined" &&
+  typeof browser.runtime?.getBrowserInfo === "function";
+
+function updateActionIcon(dark) {
+  if (IS_FIREFOX) return;
+  const name = dark ? "icon-light" : "icon"; // ダークテーマには白アイコン
+  chrome.action
+    .setIcon({
+      path: {
+        16: `icons/${name}-16.png`,
+        32: `icons/${name}-32.png`,
+        48: `icons/${name}-48.png`,
+        128: `icons/${name}-128.png`
+      }
+    })
+    .catch(() => {});
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg?.type === "setColorScheme") {
+    updateActionIcon(!!msg.dark);
+    return;
+  }
   if (msg?.type === "setHeaderStripping") {
     const tabId = sender.tab?.id;
     if (tabId == null || tabId < 0) {
