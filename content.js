@@ -95,8 +95,10 @@
     report();
   }
 
+  const t = (key, subs) => chrome.i18n.getMessage(key, subs);
+
   const PRESET_DEFAULTS = {
-    name: "プリセット",
+    name: t("presetDefaultName"),
     srcType: "url", // "url" | "image"（画像本体は dfImages に別置き）
     url: "",
     opacity: 0.5,
@@ -154,7 +156,7 @@
       const old = raw.dfState;
       const p = { id: newId(), ...PRESET_DEFAULTS };
       for (const k of Object.keys(PRESET_DEFAULTS)) if (old[k] != null) p[k] = old[k];
-      p.name = "既定";
+      p.name = t("legacyPresetName");
       s.presets.push(p);
       s.settings.lock = old.lock != null ? old.lock : true;
       if (old.enabled && old.url) {
@@ -344,10 +346,10 @@
     picker = document.createElement("div");
     picker.id = "df-pick";
     picker.innerHTML =
-      '<div id="df-pick-box">画像をここにドロップ<br>' +
-      '<span class="df-pick-sub">または</span><br>' +
-      "クリックで画像を選択<br>" +
-      '<span class="df-pick-sub">(Esc でキャンセル)</span></div>';
+      '<div id="df-pick-box">' + t("pickDrop") + "<br>" +
+      '<span class="df-pick-sub">' + t("pickOr") + "</span><br>" +
+      t("pickClick") + "<br>" +
+      '<span class="df-pick-sub">' + t("pickEsc") + "</span></div>";
 
     picker.addEventListener("dragover", (e) => {
       e.preventDefault();
@@ -663,7 +665,7 @@
       case "duplicatePreset": {
         const src = store.presets.find((x) => x.id === msg.presetId);
         if (src) {
-          const p = { ...src, id: newId(), name: src.name + " のコピー" };
+          const p = { ...src, id: newId(), name: t("duplicateName", [src.name]) };
           store.presets.push(p);
           assignPreset(p.id);
           save().then(render);

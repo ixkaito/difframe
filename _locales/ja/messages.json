@@ -1,0 +1,63 @@
+{
+  "extDescription": { "message": "参考サイトや Figma プロトタイプを iframe で実装画面に重ねて表示するピクセルパーフェクト用ツール。" },
+
+  "showOverlay": { "message": "オーバーレイを表示" },
+  "targetLabel": { "message": "スクロール・クリックの操作対象" },
+  "targetPage": { "message": "ページ" },
+  "targetOverlay": { "message": "オーバーレイ" },
+  "syncScrollLabel": { "message": "スクロールを連動" },
+  "scopePath": { "message": "ページ別" },
+  "scopeHost": { "message": "ホスト別" },
+  "tabPinLabel": { "message": "このタブのみに適用" },
+  "tabPinTitle": { "message": "ON の間、プリセットの選択とオン/オフはこのタブだけに適用され、他のタブに影響しません" },
+
+  "renameTitle": { "message": "名前を変更" },
+  "addTitle": { "message": "新規追加" },
+  "duplicateTitle": { "message": "複製" },
+  "deleteTitle": { "message": "削除" },
+  "renameOkTitle": { "message": "確定 (Enter)" },
+  "renameCancelTitle": { "message": "キャンセル (Esc)" },
+  "emptyTitle": { "message": "プリセットが割り当てられていません。" },
+  "emptySub": { "message": "一覧から選ぶか、＋ で追加してください。" },
+
+  "srcLabel": { "message": "参照" },
+  "srcImage": { "message": "画像" },
+  "applyBtn": { "message": "適用" },
+  "clearImageTitle": { "message": "画像をクリア" },
+  "widthLabel": { "message": "幅" },
+  "heightLabel": { "message": "高さ" },
+  "fitViewport": { "message": "画面に合わせる" },
+  "fitImageSize": { "message": "画像の元のサイズに戻す" },
+  "opacityLabel": { "message": "不透明度" },
+  "scaleLabel": { "message": "拡大率" },
+  "blendLabel": { "message": "ブレンドモード" },
+  "blendNormal": { "message": "通常" },
+  "blendDifference": { "message": "差分" },
+  "blendHint": { "message": "不透明度 1.0 で一致部分が黒になり、ズレだけが浮き出ます。" },
+  "confirmCancel": { "message": "キャンセル" },
+  "confirmDelete": { "message": "削除" },
+
+  "pasteHint": {
+    "message": "$KEY$ で貼り付け / クリックで画像を選択",
+    "placeholders": { "key": { "content": "$1" } }
+  },
+  "noneSelected": { "message": "未選択" },
+  "noPresets": { "message": "プリセットなし" },
+  "unnamed": { "message": "(無名)" },
+  "newPresetName": { "message": "新規プリセット" },
+  "deleteConfirm": {
+    "message": "プリセット「$NAME$」を削除しますか？",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+
+  "presetDefaultName": { "message": "プリセット" },
+  "legacyPresetName": { "message": "既定" },
+  "duplicateName": {
+    "message": "$NAME$ のコピー",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "pickDrop": { "message": "画像をここにドロップ" },
+  "pickOr": { "message": "または" },
+  "pickClick": { "message": "クリックで画像を選択" },
+  "pickEsc": { "message": "(Esc でキャンセル)" }
+}

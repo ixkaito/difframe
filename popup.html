@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="popup.css" />
@@ -8,7 +8,7 @@
  <div id="app">
   <header class="hdr">
     <span class="hdr-title">Difframe</span>
-    <label class="toggle" title="オーバーレイを表示">
+    <label class="toggle" data-i18n-title="showOverlay" title="Show overlay">
       <input type="checkbox" id="enabled" />
       <span class="track"><span class="thumb"></span></span>
     </label>
@@ -16,14 +16,14 @@
 
   <div class="target-block">
     <div class="field">
-      <label>スクロール・クリックの操作対象</label>
+      <label data-i18n="targetLabel">Scroll &amp; click target</label>
       <div class="seg" id="targetSeg">
-        <button type="button" class="seg-btn" data-target="page">ページ</button>
-        <button type="button" class="seg-btn" data-target="overlay">オーバーレイ</button>
+        <button type="button" class="seg-btn" data-target="page" data-i18n="targetPage">Page</button>
+        <button type="button" class="seg-btn" data-target="overlay" data-i18n="targetOverlay">Overlay</button>
       </div>
       <label class="tab-pin">
         <input type="checkbox" id="syncScroll" />
-        <span>スクロールを連動</span>
+        <span data-i18n="syncScrollLabel">Sync scrolling</span>
       </label>
     </div>
   </div>
@@ -31,69 +31,69 @@
   <div class="scope-key" id="scopeKey"></div>
 
   <div class="seg" id="scopeSeg">
-    <button type="button" class="seg-btn" data-scope="path">ページ別</button>
-    <button type="button" class="seg-btn" data-scope="host">ホスト別</button>
+    <button type="button" class="seg-btn" data-scope="path" data-i18n="scopePath">Per page</button>
+    <button type="button" class="seg-btn" data-scope="host" data-i18n="scopeHost">Per host</button>
   </div>
 
-  <label class="tab-pin" title="ON の間、プリセットの選択とオン/オフはこのタブだけに適用され、他のタブに影響しません">
+  <label class="tab-pin" data-i18n-title="tabPinTitle" title="While on, the preset selection and on/off state apply only to this tab and do not affect other tabs">
     <input type="checkbox" id="tabPin" />
-    <span>このタブのみに適用</span>
+    <span data-i18n="tabPinLabel">Apply to this tab only</span>
   </label>
 
   <div class="preset-bar" id="presetBar">
     <select id="presetSelect"></select>
-    <button type="button" id="presetRename" class="icon-btn" title="名前を変更">
+    <button type="button" id="presetRename" class="icon-btn" data-i18n-title="renameTitle" title="Rename">
       <!-- Radix Icons: Pencil1 -->
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg>
     </button>
-    <button type="button" id="presetAdd" class="icon-btn" title="新規追加">
+    <button type="button" id="presetAdd" class="icon-btn" data-i18n-title="addTitle" title="Add">
       <!-- Radix Icons: Plus -->
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2.75C8 2.47386 7.77614 2.25 7.5 2.25C7.22386 2.25 7 2.47386 7 2.75V7H2.75C2.47386 7 2.25 7.22386 2.25 7.5C2.25 7.77614 2.47386 8 2.75 8H7V12.25C7 12.5261 7.22386 12.75 7.5 12.75C7.77614 12.75 8 12.5261 8 12.25V8H12.25C12.5261 8 12.75 7.77614 12.75 7.5C12.75 7.22386 12.5261 7 12.25 7H8V2.75Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg>
     </button>
-    <button type="button" id="presetDup" class="icon-btn" title="複製">
+    <button type="button" id="presetDup" class="icon-btn" data-i18n-title="duplicateTitle" title="Duplicate">
       <!-- Radix Icons: Copy -->
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 9.50006C1 10.3285 1.67157 11.0001 2.5 11.0001H4L4 10.0001H2.5C2.22386 10.0001 2 9.7762 2 9.50006L2 2.50006C2 2.22392 2.22386 2.00006 2.5 2.00006L9.5 2.00006C9.77614 2.00006 10 2.22392 10 2.50006V4.00002H5.5C4.67158 4.00002 4 4.67159 4 5.50002V12.5C4 13.3284 4.67158 14 5.5 14H12.5C13.3284 14 14 13.3284 14 12.5V5.50002C14 4.67159 13.3284 4.00002 12.5 4.00002H11V2.50006C11 1.67163 10.3284 1.00006 9.5 1.00006H2.5C1.67157 1.00006 1 1.67163 1 2.50006V9.50006ZM5 5.50002C5 5.22388 5.22386 5.00002 5.5 5.00002H12.5C12.7761 5.00002 13 5.22388 13 5.50002V12.5C13 12.7762 12.7761 13 12.5 13H5.5C5.22386 13 5 12.7762 5 12.5V5.50002Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg>
     </button>
-    <button type="button" id="presetDel" class="icon-btn danger" title="削除">
+    <button type="button" id="presetDel" class="icon-btn danger" data-i18n-title="deleteTitle" title="Delete">
       <!-- Radix Icons: Trash -->
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 1C5.22386 1 5 1.22386 5 1.5C5 1.77614 5.22386 2 5.5 2H9.5C9.77614 2 10 1.77614 10 1.5C10 1.22386 9.77614 1 9.5 1H5.5ZM3 3.5C3 3.22386 3.22386 3 3.5 3H5H10H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12C11 12.5523 10.5523 13 10 13H5C4.44772 13 4 12.5523 4 12V4H3.5C3.22386 4 3 3.77614 3 3.5ZM5 4H10V12H5V4Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg>
     </button>
   </div>
   <div class="preset-bar" id="renameBar" hidden>
     <input type="text" id="renameInput" />
-    <button type="button" id="renameOk" class="icon-btn" title="確定 (Enter)">
+    <button type="button" id="renameOk" class="icon-btn" data-i18n-title="renameOkTitle" title="Confirm (Enter)">
       <!-- Radix Icons: Check -->
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.4669 3.72684C11.7558 3.91574 11.8369 4.30308 11.648 4.59198L7.39799 11.092C7.29783 11.2452 7.13556 11.3467 6.95402 11.3699C6.77247 11.3931 6.58989 11.3355 6.45446 11.2124L3.70446 8.71241C3.44905 8.48022 3.43023 8.08494 3.66242 7.82953C3.89461 7.57412 4.28989 7.55529 4.5453 7.78749L6.75292 9.79441L10.6018 3.90792C10.7907 3.61902 11.178 3.53795 11.4669 3.72684Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg>
     </button>
-    <button type="button" id="renameCancel" class="icon-btn" title="キャンセル (Esc)">
+    <button type="button" id="renameCancel" class="icon-btn" data-i18n-title="renameCancelTitle" title="Cancel (Esc)">
       <!-- Radix Icons: Cross2 -->
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg>
     </button>
   </div>
 
   <div id="emptyState" class="empty">
-    <p>プリセットが割り当てられていません。</p>
-    <p class="empty-sub">一覧から選ぶか、<b>＋</b> で追加してください。</p>
+    <p data-i18n="emptyTitle">No preset assigned.</p>
+    <p class="empty-sub" data-i18n="emptySub">Select one from the list or add one with +.</p>
   </div>
 
   <div id="fields" class="fields" style="display:none">
     <div class="field">
       <div class="label-row src-row">
-        <label>参照</label>
+        <label data-i18n="srcLabel">Source</label>
         <div class="seg seg-mini" id="srcSeg">
           <button type="button" class="seg-btn" data-src="url">URL</button>
-          <button type="button" class="seg-btn" data-src="image">画像</button>
+          <button type="button" class="seg-btn" data-src="image" data-i18n="srcImage">Image</button>
         </div>
       </div>
       <div class="url-row" id="urlRow">
         <input type="text" id="url" placeholder="https://example.com" />
-        <button type="button" id="urlApply" class="btn-apply">適用</button>
+        <button type="button" id="urlApply" class="btn-apply" data-i18n="applyBtn">Apply</button>
       </div>
       <div id="imageRow" hidden>
         <div class="image-drop" id="imageDrop">
           <span id="imageDropHint"></span>
           <img id="imageThumb" hidden alt="" />
-          <button type="button" id="imageClear" class="thumb-clear" title="画像をクリア" hidden>
+          <button type="button" id="imageClear" class="thumb-clear" data-i18n-title="clearImageTitle" title="Clear image" hidden>
             <!-- Radix Icons: Cross2 -->
             <svg width="12" height="12" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg>
           </button>
@@ -103,25 +103,25 @@
     </div>
 
     <div class="grid4">
-      <div class="field"><label for="width">幅</label><input type="number" id="width" /></div>
-      <div class="field"><label for="height">高さ</label><input type="number" id="height" /></div>
+      <div class="field"><label for="width" data-i18n="widthLabel">Width</label><input type="number" id="width" /></div>
+      <div class="field"><label for="height" data-i18n="heightLabel">Height</label><input type="number" id="height" /></div>
       <div class="field"><label for="x">X</label><input type="number" id="x" /></div>
       <div class="field"><label for="y">Y</label><input type="number" id="y" /></div>
     </div>
 
-    <button type="button" id="fitViewport" class="btn-wide">画面に合わせる</button>
+    <button type="button" id="fitViewport" class="btn-wide" data-i18n="fitViewport">Fit to viewport</button>
 
     <div class="grid2" style="margin-top:12px">
       <div class="field">
         <div class="label-row">
-          <label for="opacityNum">不透明度</label>
+          <label for="opacityNum" data-i18n="opacityLabel">Opacity</label>
           <input type="number" id="opacityNum" min="0" max="1" step="0.05" />
         </div>
         <input type="range" id="opacity" min="0" max="1" step="0.05" />
       </div>
       <div class="field">
         <div class="label-row">
-          <label for="scaleNum">拡大率</label>
+          <label for="scaleNum" data-i18n="scaleLabel">Scale</label>
           <input type="number" id="scaleNum" min="0.25" max="3" step="0.05" />
         </div>
         <input type="range" id="scale" min="0.25" max="3" step="0.05" />
@@ -130,13 +130,13 @@
 
     <div class="field">
       <div class="inline-field">
-        <label for="blend">ブレンドモード</label>
+        <label for="blend" data-i18n="blendLabel">Blend mode</label>
         <select id="blend">
-          <option value="normal">通常</option>
-          <option value="difference">差分</option>
+          <option value="normal" data-i18n="blendNormal">Normal</option>
+          <option value="difference" data-i18n="blendDifference">Difference</option>
         </select>
       </div>
-      <p class="hint" id="blendHint" hidden><b>不透明度 1.0</b> で一致部分が黒になり、ズレだけが浮き出ます。</p>
+      <p class="hint" id="blendHint" hidden data-i18n="blendHint">At opacity 1.0, matching areas turn black and only the differences stand out.</p>
     </div>
   </div>
 
@@ -147,8 +147,8 @@
     <div class="modal">
       <p id="confirmMsg"></p>
       <div class="modal-actions">
-        <button type="button" id="confirmCancel" class="btn btn-ghost">キャンセル</button>
-        <button type="button" id="confirmOk" class="btn btn-danger">削除</button>
+        <button type="button" id="confirmCancel" class="btn btn-ghost" data-i18n="confirmCancel">Cancel</button>
+        <button type="button" id="confirmOk" class="btn btn-danger" data-i18n="confirmDelete">Delete</button>
       </div>
     </div>
   </div>

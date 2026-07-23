@@ -1,0 +1,63 @@
+{
+  "extDescription": { "message": "Overlay reference sites and Figma prototypes on your page as a live iframe — a pixel-perfect comparison tool." },
+
+  "showOverlay": { "message": "Show overlay" },
+  "targetLabel": { "message": "Scroll & click target" },
+  "targetPage": { "message": "Page" },
+  "targetOverlay": { "message": "Overlay" },
+  "syncScrollLabel": { "message": "Sync scrolling" },
+  "scopePath": { "message": "Per page" },
+  "scopeHost": { "message": "Per host" },
+  "tabPinLabel": { "message": "Apply to this tab only" },
+  "tabPinTitle": { "message": "While on, the preset selection and on/off state apply only to this tab and do not affect other tabs" },
+
+  "renameTitle": { "message": "Rename" },
+  "addTitle": { "message": "Add" },
+  "duplicateTitle": { "message": "Duplicate" },
+  "deleteTitle": { "message": "Delete" },
+  "renameOkTitle": { "message": "Confirm (Enter)" },
+  "renameCancelTitle": { "message": "Cancel (Esc)" },
+  "emptyTitle": { "message": "No preset assigned." },
+  "emptySub": { "message": "Select one from the list or add one with +." },
+
+  "srcLabel": { "message": "Source" },
+  "srcImage": { "message": "Image" },
+  "applyBtn": { "message": "Apply" },
+  "clearImageTitle": { "message": "Clear image" },
+  "widthLabel": { "message": "Width" },
+  "heightLabel": { "message": "Height" },
+  "fitViewport": { "message": "Fit to viewport" },
+  "fitImageSize": { "message": "Reset to original image size" },
+  "opacityLabel": { "message": "Opacity" },
+  "scaleLabel": { "message": "Scale" },
+  "blendLabel": { "message": "Blend mode" },
+  "blendNormal": { "message": "Normal" },
+  "blendDifference": { "message": "Difference" },
+  "blendHint": { "message": "At opacity 1.0, matching areas turn black and only the differences stand out." },
+  "confirmCancel": { "message": "Cancel" },
+  "confirmDelete": { "message": "Delete" },
+
+  "pasteHint": {
+    "message": "Paste with $KEY$ / click to choose an image",
+    "placeholders": { "key": { "content": "$1" } }
+  },
+  "noneSelected": { "message": "Not selected" },
+  "noPresets": { "message": "No presets" },
+  "unnamed": { "message": "(unnamed)" },
+  "newPresetName": { "message": "New preset" },
+  "deleteConfirm": {
+    "message": "Delete preset \"$NAME$\"?",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+
+  "presetDefaultName": { "message": "Preset" },
+  "legacyPresetName": { "message": "Default" },
+  "duplicateName": {
+    "message": "$NAME$ (copy)",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "pickDrop": { "message": "Drop an image here" },
+  "pickOr": { "message": "or" },
+  "pickClick": { "message": "Click to choose an image" },
+  "pickEsc": { "message": "(Esc to cancel)" }
+}

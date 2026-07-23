@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "Difframe",
   "version": "0.1.0",
-  "description": "参考サイトや Figma プロトタイプを iframe で実装画面に重ねて表示するピクセルパーフェクト用ツール。",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "permissions": [
     "declarativeNetRequest",
     "storage",

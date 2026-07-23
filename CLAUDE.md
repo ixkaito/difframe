@@ -11,6 +11,7 @@
 - `content.js` / `content.css` — オーバーレイ本体。`all_frames: true` でオーバーレイ iframe 自身にも注入される
 - `popup.html` / `popup.js` / `popup.css` — 設定 UI（プリセット管理など）
 - `icons/` — アイコン。SVG 原本（`icon.svg`=黒、`icon-light.svg`=白）から `sips -s format png -z <size> <size>` で各サイズの PNG を生成。黒はライトテーマ用、白はダークテーマ用（Firefox の `theme_icons`）
+- `_locales/en|ja/` — i18n（`default_locale` は en）。popup.html は `data-i18n` / `data-i18n-title` 属性を popup.js 起動時に一括置換、JS 内の動的文言は `chrome.i18n.getMessage`。言語はブラウザの UI 言語で自動選択
 
 ## 主な機能
 

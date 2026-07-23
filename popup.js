@@ -1,5 +1,16 @@
 // ポップアップ UI。content script にコマンドを送って state を編集する。
 const $ = (id) => document.getElementById(id);
+const t = (key, subs) => chrome.i18n.getMessage(key, subs);
+
+// ---- i18n: data-i18n / data-i18n-title を UI 言語の辞書で置換 ----
+document.documentElement.lang = t("@@ui_locale");
+for (const el of document.querySelectorAll("[data-i18n]")) {
+  el.textContent = t(el.dataset.i18n);
+}
+for (const el of document.querySelectorAll("[data-i18n-title]")) {
+  el.title = t(el.dataset.i18nTitle);
+}
+
 const els = {
   enabled: $("enabled"),
   scopeKey: $("scopeKey"),
@@ -50,8 +61,9 @@ let tabId = null;
 let data = null; // { store, key, binding, activePresetId }
 
 // OS に合わせた貼り付けキー表記（Mac: ⌘V / それ以外: Ctrl+V）
-els.imageDropHint.textContent =
-  (navigator.platform.includes("Mac") ? "⌘V" : "Ctrl+V") + " で貼り付け / クリックで画像を選択";
+els.imageDropHint.textContent = t("pasteHint", [
+  navigator.platform.includes("Mac") ? "⌘V" : "Ctrl+V"
+]);
 
 async function activeTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -107,13 +119,13 @@ function fill() {
   if (!p) {
     const o = document.createElement("option");
     o.value = "";
-    o.textContent = store.presets.length ? "未選択" : "プリセットなし";
+    o.textContent = store.presets.length ? t("noneSelected") : t("noPresets");
     els.presetSelect.appendChild(o);
   }
   for (const pr of store.presets) {
     const o = document.createElement("option");
     o.value = pr.id;
-    o.textContent = pr.name || "(無名)";
+    o.textContent = pr.name || t("unnamed");
     els.presetSelect.appendChild(o);
   }
   els.presetSelect.value = p ? p.id : "";
@@ -136,7 +148,7 @@ function fill() {
   els.imageRow.hidden = srcType !== "image";
   if (p && srcType === "image") loadThumb(p.id);
   els.fitViewport.textContent =
-    srcType === "image" ? "画像の元のサイズに戻す" : "画面に合わせる";
+    srcType === "image" ? t("fitImageSize") : t("fitViewport");
 
   if (p) {
     els.url.value = p.url;
@@ -199,7 +211,7 @@ els.presetSelect.addEventListener("change", () => {
   if (els.presetSelect.value) send({ type: "selectPreset", presetId: els.presetSelect.value }).then(refresh);
 });
 els.presetAdd.addEventListener("click", () =>
-  send({ type: "addPreset", preset: { name: "新規プリセット" } }).then(refresh)
+  send({ type: "addPreset", preset: { name: t("newPresetName") } }).then(refresh)
 );
 els.presetDup.addEventListener("click", () => {
   const p = activePreset();
@@ -208,7 +220,7 @@ els.presetDup.addEventListener("click", () => {
 els.presetDel.addEventListener("click", async () => {
   const p = activePreset();
   if (!p) return;
-  if (await confirmDialog(`プリセット「${p.name}」を削除しますか？`))
+  if (await confirmDialog(t("deleteConfirm", [p.name])))
     send({ type: "deletePreset", presetId: p.id }).then(refresh);
 });
 
