@@ -363,6 +363,16 @@ els.scaleNum.addEventListener("change", () => {
   paintSlider(els.scale);
   patchPreset({ scale: v });
 });
+// Shift+矢印で 10 刻み（HTML 標準に無い挙動なので自前実装。
+// preventDefault でネイティブの ±1 を止め、change を発火して保存につなげる）
+for (const el of [els.width, els.height, els.x, els.y]) {
+  el.addEventListener("keydown", (e) => {
+    if (!e.shiftKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    e.preventDefault();
+    el.value = (parseInt(el.value, 10) || 0) + (e.key === "ArrowUp" ? 10 : -10);
+    el.dispatchEvent(new Event("change"));
+  });
+}
 els.width.addEventListener("change", () => patchPreset({ width: parseInt(els.width.value, 10) || 0 }));
 els.height.addEventListener("change", () => patchPreset({ height: parseInt(els.height.value, 10) || 0 }));
 els.x.addEventListener("change", () => patchPreset({ x: parseInt(els.x.value, 10) || 0 }));
