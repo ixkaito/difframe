@@ -102,9 +102,8 @@ function fill() {
 
   els.enabled.checked = !!(binding && binding.enabled && p);
 
-  // スコープ表示はタブごとの投影: タブ上書き中は「タブ」、
-  // それ以外は共有設定 (path | host) を反映する
-  const scopeSel = data.tabOverride ? "tab" : store.settings.scope;
+  // スコープは「有効な割り当ての保存場所」の投影（content script 側で導出）
+  const scopeSel = data.scope;
   for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
     b.classList.toggle("active", b.dataset.scope === scopeSel);
   }

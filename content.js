@@ -1,13 +1,16 @@
 // 実装ページ側に注入され、オーバーレイ iframe を生成・制御する。
-// ストレージ構造 (v3):
+// ストレージ構造 (v4):
 //   dfStore = {
-//     version: 3,
+//     version: 4,
 //     presets: [{ id, name, url, opacity, scale, x, y, width, height, blend }],
 //     bindings: { "<key>": { presetId, enabled } },  // key = host or host+path
-//     settings: { scope: "tab" | "path" | "host", lock: bool }
+//     settings: { lock: bool, syncScroll: bool }
 //   }
-// scope=tab（既定）の割り当ては bindings ではなく sessionStorage の
-// タブローカル上書きに保存される（このタブ×この origin のみ有効）。
+// 割り当ての解決は タブ上書き（sessionStorage）→ host+path → host の
+// フォールバック。グローバルなスコープ設定は無く、UI のスコープ表示は
+// 「有効な割り当てがどこに保存されているか」の投影（狭いスコープが広い
+// スコープを shadow する。OFF の path 割り当てで「ホスト全体 ON・
+// このページのみ OFF」も表現できる）。
 (() => {
   if (window.__difframeInjected) return;
   window.__difframeInjected = true;
@@ -111,7 +114,7 @@
     height: 900,
     blend: "normal"
   };
-  const SETTINGS_DEFAULTS = { scope: "tab", lock: true, syncScroll: true };
+  const SETTINGS_DEFAULTS = { lock: true, syncScroll: true };
 
   let store = null;
   let root, iframe;
@@ -121,6 +124,11 @@
   // 消えるので「このタブだけ別プリセット」の置き場所にちょうどいい。
   const TAB_OVERRIDE_KEY = "__difframeTabOverride";
   let tabOverride = null; // { presetId, enabled } | null
+
+  // 未割当状態でユーザーが選んだ保存先スコープ（"path" | "host" | null）。
+  // 次の割り当てが発生するまでの UI 上の行き先。永続化しない
+  // （割り当てが生まれれば以後はその保存場所から導出される）
+  let pendingScope = null;
 
   function loadTabOverride() {
     try {
@@ -143,16 +151,17 @@
   }
 
   function emptyStore() {
-    return { version: 3, presets: [], bindings: {}, settings: { ...SETTINGS_DEFAULTS } };
+    return { version: 4, presets: [], bindings: {}, settings: { ...SETTINGS_DEFAULTS } };
   }
 
   function migrate(raw) {
     if (raw && raw.version >= 2) {
-      // v2→v3: 既定スコープを path → tab に変更。v2 の scope は旧既定が
-      // 自動保存されただけの可能性が高いため、一度だけ新既定に揃える
-      if (raw.version === 2) {
-        raw.version = 3;
-        raw.settings = { ...raw.settings, scope: "tab" };
+      // v4: settings.scope を廃止。解決が タブ上書き → path → host の
+      // フォールバックになったため、旧グローバル設定で片方しか見えなかった
+      // 割り当てはそのまま復活する。bindings は無変更
+      if (raw.version < 4) {
+        raw.version = 4;
+        if (raw.settings) delete raw.settings.scope;
       }
       raw.settings = { ...SETTINGS_DEFAULTS, ...raw.settings };
       for (const p of raw.presets) if (!p.srcType) p.srcType = "url";
@@ -169,7 +178,6 @@
       s.settings.lock = old.lock != null ? old.lock : true;
       if (old.enabled && old.url) {
         s.bindings[keyFor(location, "host")] = { presetId: p.id, enabled: true };
-        s.settings.scope = "host"; // 既定 tab のままだと移行した割り当てが解決されない
       }
     }
     return s;
@@ -181,16 +189,23 @@
     return scope === "path" ? host + loc.pathname : host;
   }
 
-  function currentKey() {
-    return keyFor(location, store.settings.scope);
+  function currentScope() {
+    // スコープは「有効な割り当ての保存場所」の投影。
+    // どこにも無ければ、選択済みの保存先（pendingScope）か既定のタブ
+    if (tabOverride) return "tab";
+    if (store.bindings[keyFor(location, "path")]) return "path";
+    if (store.bindings[keyFor(location, "host")]) return "host";
+    return pendingScope || "tab";
   }
 
   function activeBinding() {
-    // タブローカルの上書きがあれば共有バインディングより優先。
-    // scope=tab（既定）で上書き未作成のタブは未割当（共有には触れない）
+    // タブ上書き → ページ → ホスト。狭いスコープが広いスコープを shadow する
     if (tabOverride) return tabOverride;
-    if (store.settings.scope === "tab") return null;
-    return store.bindings[currentKey()] || null;
+    return (
+      store.bindings[keyFor(location, "path")] ||
+      store.bindings[keyFor(location, "host")] ||
+      null
+    );
   }
 
   function activePreset() {
@@ -204,11 +219,11 @@
     return !!(b && b.enabled && activePreset());
   }
 
-  // scope=tab で上書き未作成なら、割り当ての置き場所として遅延作成する
-  // （ページ読み込み時に作らないのは、空の上書きが残ると後から共有スコープに
-  //   切り替えたとき他タブがそれに追従できなくなるため）
+  // スコープがタブ（既定）で上書き未作成なら、割り当ての置き場所として
+  // 遅延作成する（ページ読み込み時に作らないのは、空の上書きが残ると
+  // 共有の割り当てが生まれたとき他タブと同じ表示に追従できなくなるため）
   function ensureTabOverride(enabled) {
-    if (store.settings.scope === "tab" && !tabOverride) {
+    if (!tabOverride && currentScope() === "tab") {
       tabOverride = { presetId: null, enabled };
     }
   }
@@ -221,7 +236,8 @@
       tabOverride.enabled = true;
       saveTabOverride();
     } else {
-      store.bindings[currentKey()] = { presetId, enabled: true };
+      // currentScope() はここでは path | host（タブなら上書きが処理済み）
+      store.bindings[keyFor(location, currentScope())] = { presetId, enabled: true };
     }
   }
 
@@ -579,17 +595,15 @@
     }
     switch (msg?.type) {
       case "getData": {
+        const scope = currentScope();
         sendResponse({
           store,
+          scope,
           // 表示用キー: タブスコープは sessionStorage の生存範囲＝
           // このタブ×この origin なので、host 単位で見せる
-          key:
-            tabOverride || store.settings.scope === "tab"
-              ? keyFor(location, "host")
-              : currentKey(),
+          key: keyFor(location, scope === "path" ? "path" : "host"),
           binding: activeBinding(),
-          activePresetId: activePreset()?.id || null,
-          tabOverride
+          activePresetId: activePreset()?.id || null
         });
         return;
       }
@@ -614,7 +628,7 @@
           sendResponse({ ok: true });
           return;
         }
-        const key = currentKey();
+        const key = keyFor(location, currentScope());
         let b = store.bindings[key];
         if (msg.enabled) {
           // 有効化：バインディングが無ければ、指定 or 先頭 or 新規プリセットを割当
@@ -650,34 +664,54 @@
           sendResponse({ ok: true });
           return;
         }
-        const key = currentKey();
+        const key = keyFor(location, currentScope());
         const b = store.bindings[key] || (store.bindings[key] = { presetId: null, enabled: true });
         b.presetId = msg.presetId;
         save().then(render);
         sendResponse({ ok: true });
         return;
       }
-      // スコープ3択（ページ別/ホスト別/このタブ）。「このタブ」は
-      // settings.scope に保存しない: scope は全タブ共有なので、ここに
-      // tab を入れると他のタブまでタブモードに切り替わってしまう。
-      // タブ上書きの有無そのものが「このタブ」状態を表す。
+      // スコープ切替＝「現在有効な割り当てを、選んだ保存先へ移す」操作。
+      // タブへ: 共有割り当ての内容を引き継いで上書きを開始（共有側は残す
+      //   ＝他のタブには効き続ける）。
+      // ページ/ホストへ: 有効な割り当てをそのキーへ書き込む。ホスト選択時は
+      //   shadow してしまう path 割り当てを削除し、タブ上書きは解除する。
       case "setScope": {
+        if (msg.scope === currentScope()) {
+          sendResponse({ ok: true });
+          return;
+        }
+        const eff = activeBinding();
         if (msg.scope === "tab") {
-          // 現在の割り当てを引き継いでタブローカル上書きを開始
-          if (!tabOverride) {
-            const base = store.bindings[currentKey()];
+          pendingScope = null;
+          if (eff) {
             tabOverride = {
-              presetId: base?.presetId || store.presets[0]?.id || null,
-              enabled: base ? !!base.enabled : false
+              presetId: eff.presetId || store.presets[0]?.id || null,
+              enabled: !!eff.enabled
             };
             saveTabOverride();
-            render();
           }
+          render();
         } else {
-          tabOverride = null;
-          saveTabOverride();
-          store.settings.scope = msg.scope;
-          save().then(render);
+          let dirty = false;
+          if (eff) {
+            store.bindings[keyFor(location, msg.scope)] = {
+              presetId: eff.presetId,
+              enabled: !!eff.enabled
+            };
+            dirty = true;
+          }
+          if (msg.scope === "host" && store.bindings[keyFor(location, "path")]) {
+            delete store.bindings[keyFor(location, "path")];
+            dirty = true;
+          }
+          pendingScope = eff ? null : msg.scope;
+          if (tabOverride) {
+            tabOverride = null;
+            saveTabOverride();
+          }
+          if (dirty) save().then(render);
+          else render();
         }
         sendResponse({ ok: true });
         return;
