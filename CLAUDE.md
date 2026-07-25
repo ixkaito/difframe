@@ -54,7 +54,14 @@
 - **オーバーレイON時のフェード/トランジションの原因不明の挙動**: 一度は全称セレクタ漏れを疑い防御CSSを入れたが別問題と判明しロールバック。原因未特定
 - **スクロールバーの「レイヤー」切り替え**（操作対象によってどちらのバーを見せるか）: ネイティブでは不可能と結論、自前インジケータ案は未実装のまま
 - **`label`のグローバルmargin指定のスコープ整理**: 複数回話題に出たが未着手
-- **公開準備の残り**: `browser_specific_settings.gecko.id`を`frame-overlay@example.com`→`difframe@example.com`へ変更（ID変更で拡張機能IDが変わり既存プリセットが消えるため、公開直前に一度だけ行う予定）。README・LICENSE(MIT)・アイコンは対応済み
+- **公開準備の残り**（README・LICENSE(MIT)・拡張機能アイコンは対応済み）:
+  - `browser_specific_settings.gecko.id`を`frame-overlay@example.com`→`difframe@example.com`へ変更（ID変更で拡張機能IDが変わり既存プリセットが消えるため、公開直前に一度だけ行う予定）
+  - **ストア掲載素材（未着手）**:
+    - スクリーンショット: 1280×800 で作れば両ストア共用（CWS は必須1〜5枚・JPEG/24bit PNG・透過不可、AMO は任意・推奨1280×800・1.6:1）。構成案: ①コンセプト全景（実装ページ+半透明オーバーレイ+ポップアップ） ②差分モードでズレだけが浮かぶ画面 ③ポップアップUIのアップ ④Figma共有リンク ⑤タブスコープでPC/SP並行比較。CWS はロケール別に設定できるので en/ja の2セット。macOS の Chrome は `--lang` を無視するため英語UIは `defaults write com.google.Chrome AppleLanguages '(en)'` で切替（戻すのは `defaults delete com.google.Chrome AppleLanguages`）。Firefox は設定→一般→言語。Retina だと2倍pxで撮れるので 2560×1600 で撮って縮小が楽
+    - CWS ストアアイコン: ガイドラインは絵柄96×96+各辺16px透過余白・ライト/ダーク両背景で視認可。現 `icon-128.png` は余白8px・純黒なので、提出用に余白広めの版（必要なら中間色版）を SVG から `sips` で別途生成する
+    - AMO アイコン: 32×32 / 64×64 を SVG から生成して Developer Hub にアップロード
+    - CWS スモールプロモタイル 440×280 は必須（文字は避け、半分に縮小しても成立する絵）。マーキー 1400×560 は任意（フィーチャー掲載の対象になる）
+  - LP はストア公開後に検討（まず README にデモGIF+ストアバッジを足す。Zenn 等の紹介記事のほうが流入を生む想定）
 
 ## このプロジェクトでの流儀
 
