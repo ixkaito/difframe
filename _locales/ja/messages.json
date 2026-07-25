@@ -6,10 +6,15 @@
   "targetPage": { "message": "ページ" },
   "targetOverlay": { "message": "オーバーレイ" },
   "syncScrollLabel": { "message": "スクロールを連動" },
-  "scopePath": { "message": "ページ別" },
-  "scopeHost": { "message": "ホスト別" },
-  "tabPinLabel": { "message": "このタブのみに適用" },
-  "tabPinTitle": { "message": "ON の間、プリセットの選択とオン/オフはこのタブだけに適用され、他のタブに影響しません" },
+  "scopeLabel": { "message": "適用範囲" },
+  "scopeTab": { "message": "タブ" },
+  "scopePath": { "message": "ページ" },
+  "scopeHost": { "message": "ホスト" },
+  "scopeTabTitle": { "message": "プリセットの選択とオン/オフをこのタブだけに適用し、他のタブには影響しません" },
+  "scopeHintTab": {
+    "message": "このタブのみ（$HOST$）",
+    "placeholders": { "host": { "content": "$1" } }
+  },
 
   "renameTitle": { "message": "名前を変更" },
   "addTitle": { "message": "新規追加" },

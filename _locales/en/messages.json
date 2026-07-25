@@ -6,10 +6,15 @@
   "targetPage": { "message": "Page" },
   "targetOverlay": { "message": "Overlay" },
   "syncScrollLabel": { "message": "Sync scrolling" },
-  "scopePath": { "message": "Per page" },
-  "scopeHost": { "message": "Per host" },
-  "tabPinLabel": { "message": "Apply to this tab only" },
-  "tabPinTitle": { "message": "While on, the preset selection and on/off state apply only to this tab and do not affect other tabs" },
+  "scopeLabel": { "message": "Scope" },
+  "scopeTab": { "message": "Tab" },
+  "scopePath": { "message": "Page" },
+  "scopeHost": { "message": "Host" },
+  "scopeTabTitle": { "message": "Apply the preset selection and on/off state to this tab only, without affecting other tabs" },
+  "scopeHintTab": {
+    "message": "This tab only ($HOST$)",
+    "placeholders": { "host": { "content": "$1" } }
+  },
 
   "renameTitle": { "message": "Rename" },
   "addTitle": { "message": "Add" },

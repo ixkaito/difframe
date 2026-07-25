@@ -21,24 +21,20 @@
         <button type="button" class="seg-btn" data-target="page" data-i18n="targetPage">Page</button>
         <button type="button" class="seg-btn" data-target="overlay" data-i18n="targetOverlay">Overlay</button>
       </div>
-      <label class="tab-pin">
+      <label class="check">
         <input type="checkbox" id="syncScroll" />
         <span data-i18n="syncScrollLabel">Sync scrolling</span>
       </label>
     </div>
   </div>
 
-  <div class="scope-key" id="scopeKey"></div>
-
+  <label data-i18n="scopeLabel">Scope</label>
   <div class="seg" id="scopeSeg">
-    <button type="button" class="seg-btn" data-scope="path" data-i18n="scopePath">Per page</button>
-    <button type="button" class="seg-btn" data-scope="host" data-i18n="scopeHost">Per host</button>
+    <button type="button" class="seg-btn" data-scope="tab" data-i18n="scopeTab" data-i18n-title="scopeTabTitle" title="Apply the preset selection and on/off state to this tab only, without affecting other tabs">Tab</button>
+    <button type="button" class="seg-btn" data-scope="path" data-i18n="scopePath">Page</button>
+    <button type="button" class="seg-btn" data-scope="host" data-i18n="scopeHost">Host</button>
   </div>
-
-  <label class="tab-pin" data-i18n-title="tabPinTitle" title="While on, the preset selection and on/off state apply only to this tab and do not affect other tabs">
-    <input type="checkbox" id="tabPin" />
-    <span data-i18n="tabPinLabel">Apply to this tab only</span>
-  </label>
+  <p class="hint" id="scopeHint"></p>
 
   <div class="preset-bar" id="presetBar">
     <select id="presetSelect"></select>

@@ -74,12 +74,9 @@ body {
 }
 .hdr-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
 
-/* ラベルと同じ見た目（font-size-1・本文色・weight 500）に揃える */
-.scope-key {
-  font-size: 12px; /* font-size-1 */
-  font-weight: 500;
+/* 適用範囲のキー表示: 長い URL でも 1 行で省略する */
+#scopeHint {
   font-variant-numeric: tabular-nums;
-  margin-bottom: 4px; /* ラベル→コントロール間と同じ space-1 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -247,8 +244,8 @@ body {
 .btn-apply:hover { background: var(--accent-hover); }
 .btn-apply:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-/* プリセット選択のタブローカル化 */
-.tab-pin {
+/* チェックボックス＋ラベルの1行（スクロール連動など） */
+.check {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -259,8 +256,8 @@ body {
   color: var(--muted);
   cursor: pointer;
 }
-.tab-pin input { margin: 0; accent-color: var(--accent); }
-.tab-pin:has(input:checked) { color: var(--text); }
+.check input { margin: 0; accent-color: var(--accent); }
+.check:has(input:checked) { color: var(--text); }
 
 /* ---- フォーム (Radix TextField / Select 風: 白背景 + slate7 枠) ---- */
 .field { margin-bottom: 12px; }

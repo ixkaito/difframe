@@ -13,7 +13,7 @@ for (const el of document.querySelectorAll("[data-i18n-title]")) {
 
 const els = {
   enabled: $("enabled"),
-  scopeKey: $("scopeKey"),
+  scopeHint: $("scopeHint"),
   scopeSeg: $("scopeSeg"),
   presetBar: $("presetBar"),
   presetSelect: $("presetSelect"),
@@ -25,7 +25,6 @@ const els = {
   renameInput: $("renameInput"),
   renameOk: $("renameOk"),
   renameCancel: $("renameCancel"),
-  tabPin: $("tabPin"),
   emptyState: $("emptyState"),
   fields: $("fields"),
   url: $("url"),
@@ -102,11 +101,16 @@ function fill() {
   const p = activePreset();
 
   els.enabled.checked = !!(binding && binding.enabled && p);
-  els.scopeKey.textContent = key;
 
+  // スコープ表示はタブごとの投影: タブ上書き中は「タブ」、
+  // それ以外は共有設定 (path | host) を反映する
+  const scopeSel = data.tabOverride ? "tab" : store.settings.scope;
   for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
-    b.classList.toggle("active", b.dataset.scope === store.settings.scope);
+    b.classList.toggle("active", b.dataset.scope === scopeSel);
   }
+  // ヒント＝適用されるキー。タブは origin 境界を明示する
+  // （「このタブのみ」だけだと別ホストへ遷移しても効き続けると誤解される）
+  els.scopeHint.textContent = scopeSel === "tab" ? t("scopeHintTab", [key]) : key;
   const target = store.settings.lock ? "page" : "overlay";
   for (const b of els.targetSeg.querySelectorAll(".seg-btn")) {
     b.classList.toggle("active", b.dataset.target === target);
@@ -133,7 +137,6 @@ function fill() {
   els.presetRename.disabled = !p;
   els.presetDup.disabled = !p;
   els.presetDel.disabled = !p;
-  els.tabPin.checked = !!data.tabOverride;
 
   // 空状態 / フォームの出し分け
   els.fields.style.display = p ? "" : "none";
@@ -200,12 +203,10 @@ els.enabled.addEventListener("change", () =>
 );
 
 for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
-  b.addEventListener("click", () => setSettings({ scope: b.dataset.scope }));
+  b.addEventListener("click", () =>
+    send({ type: "setScope", scope: b.dataset.scope }).then(refresh)
+  );
 }
-
-els.tabPin.addEventListener("change", () =>
-  send({ type: els.tabPin.checked ? "setTabOverride" : "clearTabOverride" }).then(refresh)
-);
 
 els.presetSelect.addEventListener("change", () => {
   if (els.presetSelect.value) send({ type: "selectPreset", presetId: els.presetSelect.value }).then(refresh);
