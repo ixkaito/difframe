@@ -386,11 +386,23 @@
     closePicker();
     picker = document.createElement("div");
     picker.id = "df-pick";
-    picker.innerHTML =
-      '<div id="df-pick-box">' + t("pickDrop") + "<br>" +
-      '<span class="df-pick-sub">' + t("pickOr") + "</span><br>" +
-      t("pickClick") + "<br>" +
-      '<span class="df-pick-sub">' + t("pickEsc") + "</span></div>";
+    // 動的値（辞書文言）を含むため innerHTML ではなく DOM で組み立てる
+    // （AMO の検証が Unsafe assignment to innerHTML として却下理由にする）
+    const box = document.createElement("div");
+    box.id = "df-pick-box";
+    const sub = (text) => {
+      const s = document.createElement("span");
+      s.className = "df-pick-sub";
+      s.textContent = text;
+      return s;
+    };
+    box.append(
+      t("pickDrop"), document.createElement("br"),
+      sub(t("pickOr")), document.createElement("br"),
+      t("pickClick"), document.createElement("br"),
+      sub(t("pickEsc"))
+    );
+    picker.appendChild(box);
 
     picker.addEventListener("dragover", (e) => {
       e.preventDefault();
