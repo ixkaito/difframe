@@ -82,20 +82,23 @@
     return;
   }
 
+  // background への送信。拡張機能を再読み込みした直後は古い content script の
+  // コンテキストが失効していて sendMessage が同期的に投げたり reject したり
+  // するので、ここで一括して握りつぶす（常に resolve する Promise を返す）。
+  function sendBg(msg) {
+    try {
+      return chrome.runtime.sendMessage(msg).catch(() => {});
+    } catch {
+      return Promise.resolve();
+    }
+  }
+
   // ---- ツールバーアイコンのダークモード対応（Chrome 用）----
   // Chrome には Firefox の theme_icons に相当する仕組みが無く、service worker
   // では matchMedia も使えないため、ページ側で検知して background に伝える。
   {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const report = () => {
-      // 拡張機能のリロード直後は古い content script のコンテキストが
-      // 失効していて sendMessage が投げるので握りつぶす
-      try {
-        chrome.runtime
-          .sendMessage({ type: "setColorScheme", dark: mq.matches })
-          .catch(() => {});
-      } catch {}
-    };
+    const report = () => sendBg({ type: "setColorScheme", dark: mq.matches });
     mq.addEventListener("change", report);
     report();
   }
@@ -519,7 +522,7 @@
       if (shield) shield.style.display = "none";
       ensureCanvasBackground(false);
       sendModeToFrame();
-      chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: false });
+      sendBg({ type: "setHeaderStripping", enabled: false });
       return;
     }
     const p = activePreset();
@@ -527,6 +530,7 @@
     root.style.display = "block";
 
     const useImage = (p.srcType || "url") === "image";
+    const src = useImage ? "" : buildFigmaEmbed(p.url || "");
     iframe.style.display = useImage ? "none" : "block";
     overlayImg.style.display = useImage ? "block" : "none";
     root.classList.toggle("df-image-mode", useImage);
@@ -541,14 +545,11 @@
     } else {
       // ヘッダ剥がしルールの適用完了を待ってから iframe を読み込む
       // （待たないと初回有効化時に XFO/CSP が残ったままリクエストされ得る）
-      const src = buildFigmaEmbed(p.url || "");
       if (src && iframe.dataset.src !== src) {
         iframe.dataset.src = src;
-        chrome.runtime
-          .sendMessage({ type: "setHeaderStripping", enabled: true })
-          .then(() => {
-            iframe.src = src;
-          });
+        sendBg({ type: "setHeaderStripping", enabled: true }).then(() => {
+          iframe.src = src;
+        });
       } else if (!src && iframe.dataset.src) {
         // URL が空のプリセットに切り替わったら、前のページを残さず空にする
         iframe.dataset.src = "";
@@ -583,17 +584,35 @@
     applyTransform();
     syncScrollToOverlay();
 
-    // 画像モードではヘッダ剥がし不要
-    chrome.runtime.sendMessage({ type: "setHeaderStripping", enabled: !useImage });
+    // 剥がすのは実際に iframe を読み込むときだけ。画像モードや URL 未入力の
+    // プリセットで有効化しただけのときにタブ全体の CSP/XFO を弱めない。
+    sendBg({ type: "setHeaderStripping", enabled: !!src });
   }
 
-  // ---- ポップアップからのコマンド ----
+  // 同一ドキュメント遷移（SPA）を検知するための、最後に描画したパス。
+  // 割り当ての解決キーに pathname を使うので、パスが変わったら解決し直す。
+  let lastPath = location.pathname;
+
+  // ---- ポップアップ／background からのコマンド ----
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (!store) {
       sendResponse(null);
       return;
     }
     switch (msg?.type) {
+      // background が tabs.onUpdated で拾った同一ドキュメント遷移。
+      // ハッシュだけの変化では割り当ては変わらないので何もしない。
+      // スクロールの基準はここでは取り直さない（遷移後にフレームワークが
+      // トップへ戻すぶんは相対同期がそのまま打ち消してくれる。iframe が
+      // 読み込み直された場合は __difframeReady 側で取り直される）。
+      case "locationChanged": {
+        if (location.pathname !== lastPath) {
+          lastPath = location.pathname;
+          render();
+        }
+        sendResponse({ ok: true });
+        return;
+      }
       case "getData": {
         const scope = currentScope();
         sendResponse({
@@ -737,6 +756,12 @@
         if (src) {
           const p = { ...src, id: newId(), name: t("duplicateName", [src.name]) };
           store.presets.push(p);
+          // 画像データはプリセット本体と別キー（dfImages）に置いてあるので、
+          // 複製元のエントリを新 ID にもコピーしないと画像なしの複製になる
+          if (imagesCache[src.id]) {
+            imagesCache[p.id] = imagesCache[src.id];
+            chrome.storage.local.set({ dfImages: imagesCache });
+          }
           assignPreset(p.id);
           save().then(render);
           sendResponse({ ok: true, id: p.id });

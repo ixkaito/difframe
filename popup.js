@@ -363,20 +363,29 @@ els.scaleNum.addEventListener("change", () => {
   paintSlider(els.scale);
   patchPreset({ scale: v });
 });
+// 直接入力・Shift+矢印はネイティブのスピナーと違って min を無視するので、
+// HTML の min（幅・高さの 1px）に合わせて自前でクランプする。負の
+// width/height は CSS 側で不正値として捨てられ、入力欄の表示値と実際の
+// オーバーレイのサイズが食い違うため。X/Y は負値に意味があるので min 無し。
+const clampToMin = (el, n) => {
+  const min = parseFloat(el.min);
+  return Number.isNaN(min) ? n : Math.max(min, n);
+};
+const numValue = (el) => clampToMin(el, parseInt(el.value, 10) || 0);
 // Shift+矢印で 10 刻み（HTML 標準に無い挙動なので自前実装。
 // preventDefault でネイティブの ±1 を止め、change を発火して保存につなげる）
 for (const el of [els.width, els.height, els.x, els.y]) {
   el.addEventListener("keydown", (e) => {
     if (!e.shiftKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
     e.preventDefault();
-    el.value = (parseInt(el.value, 10) || 0) + (e.key === "ArrowUp" ? 10 : -10);
+    el.value = clampToMin(el, (parseInt(el.value, 10) || 0) + (e.key === "ArrowUp" ? 10 : -10));
     el.dispatchEvent(new Event("change"));
   });
 }
-els.width.addEventListener("change", () => patchPreset({ width: parseInt(els.width.value, 10) || 0 }));
-els.height.addEventListener("change", () => patchPreset({ height: parseInt(els.height.value, 10) || 0 }));
-els.x.addEventListener("change", () => patchPreset({ x: parseInt(els.x.value, 10) || 0 }));
-els.y.addEventListener("change", () => patchPreset({ y: parseInt(els.y.value, 10) || 0 }));
+els.width.addEventListener("change", () => patchPreset({ width: numValue(els.width) }));
+els.height.addEventListener("change", () => patchPreset({ height: numValue(els.height) }));
+els.x.addEventListener("change", () => patchPreset({ x: numValue(els.x) }));
+els.y.addEventListener("change", () => patchPreset({ y: numValue(els.y) }));
 els.blend.addEventListener("change", () => patchPreset({ blend: els.blend.value }));
 els.fitViewport.addEventListener("click", async () => {
   const p = activePreset();

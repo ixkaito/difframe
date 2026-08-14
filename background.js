@@ -86,6 +86,27 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     .catch(() => {});
 });
 
+// ルールはタブ単位なので、同じタブで別ページへ遷移してもそのまま残る。
+// 遷移先の content script が document_idle で無効化するまで待つと、その間に
+// 読み込まれる遷移先のサブフレームからも CSP/XFO が剥がれてしまい、
+// content script が動かないページ（PDF ビューア・about: など）へ遷移した
+// 場合はタブを閉じるまで残り続ける。そのため遷移の開始時点で削除し、
+// 必要なら遷移先の content script が改めて有効化する（render() が
+// ルール適用の完了を待ってから iframe を読み込む作りになっている）。
+//
+// 同一ドキュメント遷移（SPA の pushState 等）は status を伴わず url だけが
+// 変わる。ドキュメントは生きているのでルールは維持し、代わりに割り当ての
+// 再評価を促す（割り当ての解決キーに pathname を使うため）。
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === "loading") {
+    chrome.declarativeNetRequest
+      .updateSessionRules({ removeRuleIds: [ruleIdFor(tabId)] })
+      .catch(() => {});
+  } else if (changeInfo.url) {
+    chrome.tabs.sendMessage(tabId, { type: "locationChanged" }).catch(() => {});
+  }
+});
+
 // 旧バージョンが残した「全体適用」のダイナミックルールを掃除する。
 async function cleanupLegacyDynamicRules() {
   const existing = await chrome.declarativeNetRequest.getDynamicRules();
