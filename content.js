@@ -593,8 +593,30 @@
   // 割り当ての解決キーに pathname を使うので、パスが変わったら解決し直す。
   let lastPath = location.pathname;
 
+  function dataForPopup() {
+    const scope = currentScope();
+    return {
+      store,
+      scope,
+      // 表示用キー: タブスコープは sessionStorage の生存範囲＝
+      // このタブ×この origin なので、host 単位で見せる
+      key: keyFor(location, scope === "path" ? "path" : "host"),
+      binding: activeBinding(),
+      activePresetId: activePreset()?.id || null
+    };
+  }
+
   // ---- ポップアップ／background からのコマンド ----
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    // ポップアップを開いた最初の1回だけはストレージから読み直して返す。
+    // 各タブが store 全体を持って丸ごと書き戻すので、bfcache などで
+    // storage.onChanged を取り逃していると、この後の編集が古いスナップ
+    // ショットで他タブの変更を消してしまう。編集が始まる直前に必ず
+    // 同期し直しておく（ポップアップが開いている間は onChanged が届く）。
+    if (msg?.type === "getData" && msg.reload) {
+      load().then(() => sendResponse(dataForPopup()));
+      return true; // 非同期に応答する
+    }
     if (!store) {
       sendResponse(null);
       return;
@@ -614,16 +636,7 @@
         return;
       }
       case "getData": {
-        const scope = currentScope();
-        sendResponse({
-          store,
-          scope,
-          // 表示用キー: タブスコープは sessionStorage の生存範囲＝
-          // このタブ×この origin なので、host 単位で見せる
-          key: keyFor(location, scope === "path" ? "path" : "host"),
-          binding: activeBinding(),
-          activePresetId: activePreset()?.id || null
-        });
+        sendResponse(dataForPopup());
         return;
       }
       case "getViewport": {

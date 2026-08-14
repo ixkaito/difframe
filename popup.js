@@ -85,8 +85,11 @@ function send(msg) {
   });
 }
 
-async function refresh() {
-  data = await send({ type: "getData" });
+// reload: content script にストレージを読み直させてから受け取る。
+// ポップアップを開いた初回だけ指定し、以後の再取得は編集のたびに走るので
+// 読み直さない（スライダー操作のように連続する経路を重くしないため）。
+async function refresh(reload) {
+  data = await send({ type: "getData", reload });
   fill();
 }
 
@@ -172,11 +175,11 @@ function fill() {
 function patchPreset(patch) {
   const p = activePreset();
   if (!p) return;
-  send({ type: "updatePreset", presetId: p.id, patch }).then(refresh);
+  send({ type: "updatePreset", presetId: p.id, patch }).then(() => refresh());
 }
 
 function setSettings(patch) {
-  send({ type: "setSettings", patch }).then(refresh);
+  send({ type: "setSettings", patch }).then(() => refresh());
 }
 
 function confirmDialog(message) {
@@ -198,30 +201,30 @@ function confirmDialog(message) {
 
 // ---- イベント ----
 els.enabled.addEventListener("change", () =>
-  send({ type: "setEnabled", enabled: els.enabled.checked }).then(refresh)
+  send({ type: "setEnabled", enabled: els.enabled.checked }).then(() => refresh())
 );
 
 for (const b of els.scopeSeg.querySelectorAll(".seg-btn")) {
   b.addEventListener("click", () =>
-    send({ type: "setScope", scope: b.dataset.scope }).then(refresh)
+    send({ type: "setScope", scope: b.dataset.scope }).then(() => refresh())
   );
 }
 
 els.presetSelect.addEventListener("change", () => {
-  if (els.presetSelect.value) send({ type: "selectPreset", presetId: els.presetSelect.value }).then(refresh);
+  if (els.presetSelect.value) send({ type: "selectPreset", presetId: els.presetSelect.value }).then(() => refresh());
 });
 els.presetAdd.addEventListener("click", () =>
-  send({ type: "addPreset", preset: { name: t("newPresetName") } }).then(refresh)
+  send({ type: "addPreset", preset: { name: t("newPresetName") } }).then(() => refresh())
 );
 els.presetDup.addEventListener("click", () => {
   const p = activePreset();
-  if (p) send({ type: "duplicatePreset", presetId: p.id }).then(refresh);
+  if (p) send({ type: "duplicatePreset", presetId: p.id }).then(() => refresh());
 });
 els.presetDel.addEventListener("click", async () => {
   const p = activePreset();
   if (!p) return;
   if (await confirmDialog(t("deleteConfirm", [p.name])))
-    send({ type: "deletePreset", presetId: p.id }).then(refresh);
+    send({ type: "deletePreset", presetId: p.id }).then(() => refresh());
 });
 
 // ---- インライン改名（✏️ でセレクトが入力欄に切り替わる）----
@@ -414,5 +417,5 @@ els.syncScroll.addEventListener("change", () => setSettings({ syncScroll: els.sy
   const tab = await activeTab();
   tabId = tab.id;
   await ensureInjected(tabId);
-  await refresh();
+  await refresh(true);
 })();
