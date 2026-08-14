@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Difframe",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "permissions": [
@@ -49,7 +49,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "frame-overlay@example.com",
+      "id": "@difframe",
       "strict_min_version": "121.0"
     }
   }

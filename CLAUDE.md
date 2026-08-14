@@ -58,8 +58,8 @@
 - **スクロールバーの「レイヤー」切り替え**（操作対象によってどちらのバーを見せるか）: ネイティブでは不可能と結論、自前インジケータ案は未実装のまま
 - **`label`のグローバルmargin指定のスコープ整理**: 複数回話題に出たが未着手
 - **`dfStore`の単一writer化 or 保存単位の分割**: 各タブが `store` 全体を持って丸ごと書き戻すため、古いスナップショットからの書き込みが他タブの変更を消し得る。ポップアップ初回の読み直しで実用上は塞いだが、background を唯一のwriterにするかキーを分割するのが本筋
-- **公開準備の残り**（README・LICENSE(MIT)・拡張機能アイコンは対応済み）:
-  - `browser_specific_settings.gecko.id`を`frame-overlay@example.com`→`difframe@example.com`へ変更（ID変更で拡張機能IDが変わり既存プリセットが消えるため、公開直前に一度だけ行う予定）
+- **公開準備の残り**（README・LICENSE(MIT)・拡張機能アイコン・gecko.id=`@difframe`・v1.0.0・提出用zipは対応済み。残りはストアでの提出作業のみ）:
+  - 提出用 zip は `zip -q dist/difframe-<ver>.zip manifest.json background.js content.js content.css popup.html popup.js popup.css icons/*.png _locales/*/messages.json` で生成（dist/ は gitignore 済み）。gecko.id は AMO 初回提出で永久確定する（Mozilla 自身の拡張と同じ `@name` 形式。提出前なら変更可）
   - **ストア掲載素材（未着手）**:
     - スクリーンショット: 1280×800 で作れば両ストア共用（CWS は必須1〜5枚・JPEG/24bit PNG・透過不可、AMO は任意・推奨1280×800・1.6:1）。構成案: ①コンセプト全景（実装ページ+半透明オーバーレイ+ポップアップ） ②差分モードでズレだけが浮かぶ画面 ③ポップアップUIのアップ ④Figma共有リンク ⑤タブスコープでPC/SP並行比較。CWS はロケール別に設定できるので en/ja の2セット。macOS の Chrome は `--lang` を無視するため英語UIは `defaults write com.google.Chrome AppleLanguages '(en)'` で切替（戻すのは `defaults delete com.google.Chrome AppleLanguages`）。Firefox は設定→一般→言語。Retina だと2倍pxで撮れるので 2560×1600 で撮って縮小が楽
     - CWS ストアアイコン: ガイドラインは絵柄96×96+各辺16px透過余白・ライト/ダーク両背景で視認可。現 `icon-128.png` は余白8px・純黒なので、提出用に余白広めの版（必要なら中間色版）を SVG から `sips` で別途生成する
