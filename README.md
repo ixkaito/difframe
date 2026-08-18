@@ -1,55 +1,57 @@
 # Difframe
 
-参考サイトや Figma プロトタイプなどを **iframe（画像ではなく実サイト）** として実装ページの上に重ねて表示する、ピクセルパーフェクト比較用のブラウザ拡張機能。Chrome / Firefox 対応（Manifest V3）。
+English | [日本語](README.ja.md)
 
-画像を重ねる従来のツールと違い、実際に動くページを重ねるため、参照先の更新が即座に反映され、スクロールを含めた実挙動のまま比較できます。
+A browser extension for pixel-perfect comparison that overlays a reference site or Figma prototype on the page you are building — as an **iframe (a live site, not an image)**. Works in Chrome and Firefox (Manifest V3).
 
-## 主な機能
+Unlike tools that overlay a static image, Difframe overlays a page that actually runs, so the reference always reflects its latest state and behaves like the real thing, scrolling included.
 
-- **サイズ・位置の調整** — オーバーレイの幅・高さ・位置（X/Y）・不透明度・拡大率を数値で指定できる
-- **差分表示** — ブレンドモード「差分」（`mix-blend-mode: difference`）で、一致している部分は黒に沈み、ズレだけが浮かび上がる
-- **操作対象の切り替え** — スクロール・クリックを「ページ」「オーバーレイ」のどちらに届けるかを明示的に切り替え
-- **スクロール連動** — 実装ページとオーバーレイのスクロールを相対差分で同期
-- **プリセット** — URL・不透明度・拡大率・幅・高さ・位置・ブレンドモードをプリセットとして保存
-- **適用範囲** — プリセットの割り当てを「タブ」「ページ」「ホスト」のどの単位で保存するか選べる。デフォルトの「タブ」はそのタブだけで完結するので、同じページを複数タブで開いて PC 用 / SP 用を並行比較できる。「ページ」は「ホスト」より優先されるため、ホスト全体に適用しつつ特定のページだけ別のプリセットや OFF にすることもできる
-- **画像モード** — iframe 埋め込みができない場合のフォールバックとして、画像のドラッグまたは ⌘V による貼り付けでオーバーレイにできる
-- **Figma 対応** — 共有リンクをそのまま貼ると埋め込み用 URL に変換
+## Features
 
-## インストール
+- **Size and position controls** — set the overlay's width, height, position (X/Y), opacity, and scale numerically
+- **Difference view** — the Difference blend mode (`mix-blend-mode: difference`) sinks matching areas into black, leaving only the misalignments visible
+- **Input target switching** — explicitly choose whether scrolls and clicks go to the page or to the overlay
+- **Scroll sync** — keeps the page and the overlay aligned by relative offset
+- **Presets** — save a URL, opacity, scale, width, height, position, and blend mode as a preset
+- **Scope** — choose whether a preset assignment is stored per Tab, per Page, or per Host. The default, Tab, is self-contained, so you can open the same page in two tabs and compare desktop and mobile in parallel. Page takes precedence over Host, so you can apply a preset host-wide while overriding it — or turning it off — on one specific page
+- **Image mode** — for sites that cannot be embedded in an iframe, drop an image or paste one with ⌘V and use that as the overlay
+- **Figma support** — paste a share link as is and it is converted to the embed URL
 
-- **Chrome**: [Chrome ウェブストア](https://chromewebstore.google.com/detail/difframe/egapjkphmifknoefiadlhihfmekkflmh)
-- **Firefox**: [Firefox アドオン](https://addons.mozilla.org/firefox/addon/difframe/)
+## Install
 
-### 開発版を読み込む
+- **Chrome**: [Chrome Web Store](https://chromewebstore.google.com/detail/difframe/egapjkphmifknoefiadlhihfmekkflmh)
+- **Firefox**: [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/difframe/)
 
-このリポジトリを clone して、ブラウザに直接読み込みます。
+### Loading the development build
 
-- **Chrome**: `chrome://extensions` → 「デベロッパーモード」を ON → 「パッケージ化されていない拡張機能を読み込む」→ このフォルダを選択
-- **Firefox**: `about:debugging#/runtime/this-firefox` → 「一時的なアドオンを読み込む」→ `manifest.json` を選択
+Clone this repository and load it into your browser directly.
 
-## 使い方
+- **Chrome**: `chrome://extensions` → turn on "Developer mode" → "Load unpacked" → select this folder
+- **Firefox**: `about:debugging#/runtime/this-firefox` → "Load Temporary Add-on" → select `manifest.json`
 
-### 基本
+## Usage
 
-1. 実装中のページを開き、ツールバーの Difframe アイコンをクリック
-2. 「参照」に比較したいページの URL を入力して「適用」
-3. ヘッダーのトグルでオーバーレイを表示
-4. 幅・高さ・位置と不透明度・拡大率を調整（数値入力は矢印キーで 1px 刻み、Shift+矢印で 10px 刻み）
-5. ブレンドモードを「差分」にしてズレを確認（不透明度1.0で一致部分が黒になる）
+### Basics
 
-### PC / SP を同時に比較する
+1. Open the page you are working on and click the Difframe icon in the toolbar
+2. Enter the URL you want to compare against under **Source** and click **Apply**
+3. Turn on the toggle in the header to show the overlay
+4. Adjust the width, height, position, opacity, and scale (number inputs step by 1px with the arrow keys, 10px with Shift+arrow)
+5. Switch the blend mode to **Difference** to inspect the gap (at opacity 1.0, matching areas turn black)
 
-1. 比較中のページを別のタブでもう1つ開く
-2. 新しいタブで（適用範囲「タブ」のまま）プリセットを新規追加もしくは複製し、SP 用に URL・幅などを調整
+### Comparing desktop and mobile at once
 
-適用範囲「タブ」での選択は他のタブに影響せず、リロードしても維持され、タブを閉じると消えます（同じホスト内でのみ有効）。
+1. Open the page you are comparing in a second tab
+2. In the new tab, leaving the scope on **Tab**, add or duplicate a preset and adjust the URL, width, and so on for mobile
 
-## 権限について
+A selection made under the Tab scope does not affect other tabs, survives a reload, and disappears when the tab is closed (it applies within the same host only).
 
-- **`<all_urls>` / scripting / activeTab** — 任意のページにオーバーレイを注入するため
-- **declarativeNetRequest** — 参照ページを iframe 表示できるよう、フレーム表示を拒否するレスポンスヘッダ（`X-Frame-Options` / CSP）を除去するため。このルールは**オーバーレイを有効にしたタブのサブフレームだけ**に適用され、他のタブや通常の閲覧のセキュリティには影響しません。タブを閉じると自動的に削除されます
-- **storage / unlimitedStorage** — プリセットと貼り付け画像の保存
+## Permissions
 
-## ライセンス
+- **`<all_urls>` / scripting / activeTab** — to inject the overlay into any page
+- **declarativeNetRequest** — to remove the response headers that refuse framing (`X-Frame-Options` / CSP) so the reference page can load inside the overlay iframe. The rule applies **only to subframes in tabs where the overlay is enabled**, so other tabs and normal browsing are never affected. It is removed automatically when the tab is closed
+- **storage / unlimitedStorage** — to store presets and pasted images
+
+## License
 
 [MIT](LICENSE)
