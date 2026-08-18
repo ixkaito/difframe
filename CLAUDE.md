@@ -58,14 +58,14 @@
 - **スクロールバーの「レイヤー」切り替え**（操作対象によってどちらのバーを見せるか）: ネイティブでは不可能と結論、自前インジケータ案は未実装のまま
 - **`label`のグローバルmargin指定のスコープ整理**: 複数回話題に出たが未着手
 - **`dfStore`の単一writer化 or 保存単位の分割**: 各タブが `store` 全体を持って丸ごと書き戻すため、古いスナップショットからの書き込みが他タブの変更を消し得る。ポップアップ初回の読み直しで実用上は塞いだが、background を唯一のwriterにするかキーを分割するのが本筋
-- **公開準備の残り**（README・LICENSE(MIT)・拡張機能アイコン・gecko.id=`@difframe`・v1.0.0・提出用zipは対応済み。残りはストアでの提出作業のみ）:
-  - 提出用 zip は `zip -q dist/difframe-<ver>.zip manifest.json background.js content.js content.css popup.html popup.js popup.css icons/*.png _locales/*/messages.json` で生成（dist/ は gitignore 済み）。gecko.id は AMO 初回提出で永久確定する（Mozilla 自身の拡張と同じ `@name` 形式。提出前なら変更可）
-  - **ストア掲載素材（未着手）**:
-    - スクリーンショット: 1280×800 で作れば両ストア共用（CWS は必須1〜5枚・JPEG/24bit PNG・透過不可、AMO は任意・推奨1280×800・1.6:1）。構成案: ①コンセプト全景（実装ページ+半透明オーバーレイ+ポップアップ） ②差分モードでズレだけが浮かぶ画面 ③ポップアップUIのアップ ④Figma共有リンク ⑤タブスコープでPC/SP並行比較。CWS はロケール別に設定できるので en/ja の2セット。macOS の Chrome は `--lang` を無視するため英語UIは `defaults write com.google.Chrome AppleLanguages '(en)'` で切替（戻すのは `defaults delete com.google.Chrome AppleLanguages`）。Firefox は設定→一般→言語。Retina だと2倍pxで撮れるので 2560×1600 で撮って縮小が楽
-    - CWS ストアアイコン: ガイドラインは絵柄96×96+各辺16px透過余白・ライト/ダーク両背景で視認可。現 `icon-128.png` は余白8px・純黒なので、提出用に余白広めの版（必要なら中間色版）を SVG から `sips` で別途生成する
-    - AMO アイコン: 32×32 / 64×64 を SVG から生成して Developer Hub にアップロード
-    - CWS スモールプロモタイル 440×280 は必須（文字は避け、半分に縮小しても成立する絵）。マーキー 1400×560 は任意（フィーチャー掲載の対象になる）
-  - LP はストア公開後に検討（まず README にデモGIF+ストアバッジを足す。Zenn 等の紹介記事のほうが流入を生む想定）
+- **公開済み（v1.0.0, 2026-08）**: [Chrome ウェブストア](https://chromewebstore.google.com/detail/difframe/egapjkphmifknoefiadlhihfmekkflmh) / [Firefox アドオン](https://addons.mozilla.org/firefox/addon/difframe/)。残るは README のデモGIF、Zenn 等の紹介記事、（反応を見て）LP。ストア運用の知見:
+  - 提出用 zip は `zip -q dist/difframe-<ver>.zip manifest.json background.js content.js content.css popup.html popup.js popup.css icons/*.png _locales/*/messages.json` で生成（dist/ は gitignore 済み）。タグを打って GitHub Releases に添付する運用
+  - **CWS は掲載テキストだけの変更でも再審査が必要**（公開中のバージョンは審査中もそのまま生き続ける）。AMO は掲載テキストの編集は即時反映。審査中の提出は掲載情報ページの ⋮ →「審査をキャンセル」で下書きに戻せる（1日6回まで、キューは最後尾に戻る）
+  - **CWS 提出時の「declarativeNetRequest の安全な静的ルールのみ」＝審査スキップのチェックは入れないこと**。Difframe は静的ルール（`rule_resources`）を持たずセッションルールを実行時に作るため、事実と異なる申告になる
+  - `<all_urls>` により CWS は詳細審査扱い。ホスト権限の理由は「参照 URL が任意でヘッダ除去対象を事前に絞れない」「iframe 内への注入が必要」「リロードをまたぐ自動復帰」で説明済み
+  - AMO は 2025-11 以降 `browser_specific_settings.gecko.data_collection_permissions` が必須（`required: ["none"]` を宣言済み）。`innerHTML` への動的値代入は却下理由になるため DOM API で組み立てる
+  - ストア素材のサイズ: スクリーンショットは CWS が 1280×800 か 640×400 の固定（JPEG/24bit PNG・透過不可）、AMO は推奨 1280×800・1.6:1 なので 1280×800 で共用。CWS はロケール別に設定でき、「全言語向け」に en、日本語ロケールに ja を入れる。プロモタイルは小 440×280 が必須・マーキー 1400×560 は任意で全言語共通。AMO アイコンは 32/64px。macOS の Chrome は `--lang` を無視するため英語UIは `defaults write com.google.Chrome AppleLanguages '(en)'`（戻すのは `defaults delete`）
+  - CWS の GA4（追加の指標）はオプトイン済み。計測対象はストア掲載ページであり拡張機能本体ではないので、データ収集なしの申告とは矛盾しない
 
 ## このプロジェクトでの流儀
 

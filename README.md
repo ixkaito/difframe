@@ -17,7 +17,12 @@
 
 ## インストール
 
-ストア未公開のため、開発者モードで読み込みます。
+- **Chrome**: [Chrome ウェブストア](https://chromewebstore.google.com/detail/difframe/egapjkphmifknoefiadlhihfmekkflmh)
+- **Firefox**: [Firefox アドオン](https://addons.mozilla.org/firefox/addon/difframe/)
+
+### 開発版を読み込む
+
+このリポジトリを clone して、ブラウザに直接読み込みます。
 
 - **Chrome**: `chrome://extensions` → 「デベロッパーモード」を ON → 「パッケージ化されていない拡張機能を読み込む」→ このフォルダを選択
 - **Firefox**: `about:debugging#/runtime/this-firefox` → 「一時的なアドオンを読み込む」→ `manifest.json` を選択
